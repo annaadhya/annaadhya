@@ -45,3 +45,6 @@ blob-report/
 
 # Generated at build time by apps/api/scripts/bundle-vercel.mjs
 apps/api/src/.generated-main.js
+
+# transient pnpm deploy target for apps/api self-contained dist assembly
+.api-deploy-tmp/
