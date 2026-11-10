@@ -20,7 +20,7 @@
  * .generated-main.js) or when ASSEMBLE_DIST=0. Runs after tsc +
  * emit-dist-main via the package build script.
  */
-import { cpSync, existsSync, readdirSync, renameSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -111,4 +111,26 @@ console.log(
   `[assemble-dist] dist/node_modules: ${readdirSync(nm).length} top-level entries, ` +
     `${sanitized} .bin/symlink artifacts stripped, ${symlinks} symlinks left`,
 );
-console.log("[assemble-dist] done - dist is self-contained, real files only");
+
+// Runtime manifest inside the output dir: Hostinger's KB says the entry file
+// "defaults to the start command in your package.json" - if the platform
+// resolves that from the OUTPUT directory, this is the file it reads. Covers
+// every startup convention at once: Entry File main.js, node main.js,
+// npm/node start, node . (main field). No "type" surprises: explicit CJS.
+writeFileSync(
+  join(dist, "package.json"),
+  JSON.stringify(
+    {
+      name: "annaadhya-api-runtime",
+      version: "0.1.0",
+      private: true,
+      type: "commonjs",
+      main: "main.js",
+      scripts: { start: "node main.js" },
+    },
+    null,
+    2,
+  ) + "\n",
+);
+
+console.log("[assemble-dist] done - dist is self-contained (main.js + src/ + node_modules/ + package.json)");

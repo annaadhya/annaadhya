@@ -20,7 +20,7 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v9-swagger-assets-external";
+const DEPLOY_BUILD = "v10-self-contained-dist";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
 
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -122,6 +122,24 @@ async function boot(): Promise<void> {
       console.warn("[mock-mode] Auto-seed failed:", err instanceof Error ? err.message : err);
     }
   }
+
+  // Platform deploy pipelines commonly health-check the site root ("/") after
+  // starting the process; with the global prefix set, the Nest router would
+  // 404 there. Serve a cheap 200 so a root probe can never fail a deployment.
+  await step("register root health probe", async () => {
+    const expressApp = app.getHttpAdapter().getInstance() as {
+      get(
+        path: string,
+        handler: (
+          req: unknown,
+          res: { status(code: number): { json(body: unknown): void } },
+        ) => void,
+      ): void;
+    };
+    expressApp.get("/", (_req, res) => {
+      res.status(200).json({ ok: true, service: "annaadhya-api", hint: "/api/v1/health" });
+    });
+  });
 
   // Vercel's Node runtime probes the PORT it injects; fall back to 3000 exactly like
   // Vercel's documented NestJS example (process.env.PORT ?? 3000). A mismatch here
