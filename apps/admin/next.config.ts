@@ -13,6 +13,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   basePath: "/admin",
+  // Hostinger's managed Node.js runtime executes a single entry file from the
+  // configured Output Directory (it does not run `next start`), so the build
+  // must emit a self-contained standalone server. Vercel ignores this option,
+  // so the services-mode deployment is unaffected.
+  output: "standalone",
   // Tracing root MUST be the monorepo root, never apps/admin. With the root pinned to
   // apps/admin, Vercel's serverless file tracing excluded the workspace packages that
   // live outside apps/admin (packages/contracts etc.), so the on-demand SSR lambda for

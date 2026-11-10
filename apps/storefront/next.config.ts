@@ -3,6 +3,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Hostinger's managed Node.js runtime executes a single entry file from the
+  // configured Output Directory (it does not run `next start`), so the build
+  // must emit a self-contained standalone server. Vercel ignores this option,
+  // so the services-mode deployment is unaffected.
+  output: "standalone",
+  // The tracing root MUST be the monorepo root, never the app dir — same guard
+  // as the admin config: keeps the standalone bundle's dependency closure
+  // complete for files that live outside apps/storefront (workspace packages).
+  outputFileTracingRoot: path.join(__dirname, "..", ".."),
   images: {
     // Brand imagery is pre-optimized WebP in /public/images; product imagery is
     // SVG placeholders (Cloudinary photography later). The Vercel image optimizer
