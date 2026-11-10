@@ -1,0 +1,22 @@
+{
+  "name": "@annaadhya/import-catalogue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@annaadhya/contracts": "workspace:*",
+    "@annaadhya/data-core": "workspace:*",
+    "@annaadhya/utils": "workspace:*",
+    "tsx": "^4.19.2",
+    "xlsx": "0.18.5",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@annaadhya/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "typescript": "5.9.3"
+  }
+}

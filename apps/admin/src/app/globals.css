@@ -1,0 +1,263 @@
+@import "tailwindcss";
+
+/*
+ * Annaadhya brand theme (Tailwind CSS 4 @theme tokens):
+ *  cream #FBF7EF background · forest #1E4D3B primary (hover #17402F)
+ *  honey #C99A3C accent · sand #E8DFCE borders · ink #26221A text
+ * Display headings use a Georgia serif stack — system fonts only, no downloads.
+ *
+ * Heritage tokens (added for the login redesign, "Modern Indian Heritage
+ * Editorial") are ADDITIVE: cream/forest/honey/sand/ink stay untouched so
+ * existing console pages render exactly as before.
+ *
+ * The Playfair Display / Plus Jakarta Sans families themselves are loaded via
+ * next/font/local in src/app/login/layout.tsx (self-hosted latin variable
+ * subsets, SIL OFL) — that wires up --font-heritage-display / --font-heritage-sans
+ * with basePath-safe asset URLs automatically.
+ */
+@theme {
+  --color-cream: #fbf7ef;
+  --color-forest: #1e4d3b;
+  --color-forest-dark: #17402f;
+  --color-honey: #c99a3c;
+  --color-honey-dark: #a87f2c;
+  --color-sand: #e8dfce;
+  --color-ink: #26221a;
+
+  /* Heritage surfaces */
+  --color-surface: #fff8f5;
+  --color-surface-dim: #f0d5c6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1ea;
+  --color-surface-container: #ffeadf;
+  --color-surface-container-high: #ffe3d4;
+  --color-surface-container-highest: #f9ddce;
+  --color-surface-variant: #f9ddce;
+  --color-on-surface: #271810;
+  --color-on-surface-variant: #534344;
+  --color-inverse-surface: #3d2d23;
+  --color-inverse-on-surface: #ffede5;
+
+  /* Heritage primary (maroon) */
+  --color-primary: #541620;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #702c35;
+  --color-on-primary-container: #f2959e;
+  --color-primary-fixed: #ffdadb;
+  --color-primary-fixed-dim: #ffb2b8;
+  --color-on-primary-fixed: #3d0510;
+  --color-on-primary-fixed-variant: #753039;
+
+  /* Heritage secondary (forest) */
+  --color-secondary: #476554;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #c6e8d3;
+  --color-on-secondary-container: #4b6958;
+  --color-secondary-fixed: #c9ead5;
+  --color-secondary-fixed-dim: #adceba;
+  --color-on-secondary-fixed: #032014;
+  --color-on-secondary-fixed-variant: #304d3d;
+
+  /* Heritage tertiary (antique gold) */
+  --color-tertiary: #3c2900;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #583e00;
+  --color-on-tertiary-container: #d3a955;
+  --color-tertiary-fixed: #ffdea5;
+  --color-tertiary-fixed-dim: #edc06a;
+  --color-on-tertiary-fixed: #261900;
+  --color-on-tertiary-fixed-variant: #5d4200;
+
+  /* Heritage error + outline */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-outline: #867273;
+  --color-outline-variant: #d9c1c2;
+
+  /* Heritage type scale (from DESIGN.md) */
+  --text-display-lg: 56px;
+  --text-display-lg--line-height: 68px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 600;
+  --text-headline-lg: 40px;
+  --text-headline-lg--line-height: 48px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-md: 28px;
+  --text-headline-md--line-height: 36px;
+  --text-headline-md--letter-spacing: 0em;
+  --text-headline-md--font-weight: 500;
+  --text-headline-sm: 22px;
+  --text-headline-sm--line-height: 30px;
+  --text-headline-sm--letter-spacing: 0em;
+  --text-headline-sm--font-weight: 500;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.04em;
+  --text-label-lg--font-weight: 600;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.06em;
+  --text-label-md--font-weight: 600;
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.08em;
+  --text-label-sm--font-weight: 700;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+
+  /*
+   * Named spacing from DESIGN.md (Stitch heritage design). Tailwind v4 turns each
+   * --spacing-<name> into the matching utilities: p-space-md, px-margin, gap-gutter…
+   */
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-mobile: 1rem;
+  --spacing-margin: 3rem;
+  --spacing-margin-mobile: 1.25rem;
+}
+
+/* Heritage families — Playfair for editorial headings, Jakarta for UI text.
+   The --font-heritage-* variables come from next/font/local in src/app/layout.tsx
+   (loaded once at the root so both /login and the console shell inherit them). */
+.font-heritage-display {
+  font-family: var(--font-heritage-display), Georgia, "Times New Roman", serif;
+}
+.font-heritage-sans {
+  font-family: var(--font-heritage-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  background-color: var(--color-surface);
+}
+
+body {
+  font-family: var(--font-heritage-sans), var(--font-sans);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Slim scrollbars for the long lists (max-h + overflow-y containers). */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-sand) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: var(--color-sand);
+  border-radius: 9999px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Design-system label styles (label-sm / label-md from DESIGN.md, uppercase-tracked)
+   used by the catalogue console page and its primitives. */
+.label-eyebrow {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.label-tracked {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* Decorative quarter-circle blob in the corner of the catalogue metric cards. */
+.metric-decor {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6rem;
+  height: 6rem;
+  border-bottom-left-radius: 9999px;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+.group:hover .metric-decor {
+  transform: scale(1.1);
+}
+
+/* Rich-text description editor + preview (sanitised HTML from the admin toolbar) */
+.rich-editor > * + * {
+  margin-top: 0.6em;
+}
+.rich-editor ul,
+.rich-editor ol {
+  padding-left: 1.4rem;
+}
+.rich-editor ul {
+  list-style: disc;
+}
+.rich-editor ol {
+  list-style: decimal;
+}
+.rich-editor a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.rich-editor h3,
+.rich-editor h4 {
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+.rich-editor h3 {
+  font-size: 1.05rem;
+}
+.rich-editor h4 {
+  font-size: 0.95rem;
+}
+
+/* Inventory console slide-over drawer + backdrop (mount-on-open animations). */
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.drawer-in {
+  animation: drawer-in 0.25s ease-out;
+}
+.backdrop-in {
+  animation: backdrop-in 0.2s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-in,
+  .backdrop-in {
+    animation: none;
+  }
+}

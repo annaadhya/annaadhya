@@ -1,0 +1,43 @@
+{
+  "name": "@annaadhya/api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/src/main.js",
+  "scripts": {
+    "dev": "npx tsx watch src/boot.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/boot.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@annaadhya/contracts": "workspace:*",
+    "@annaadhya/data-core": "workspace:*",
+    "@annaadhya/utils": "workspace:*",
+    "@nestjs/common": "11.2.7",
+    "@nestjs/core": "11.2.7",
+    "@nestjs/platform-express": "11.2.7",
+    "@nestjs/swagger": "11.4.7",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.14.2",
+    "exceljs": "4.4.0",
+    "firebase-admin": "13.10.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "3.25.76"
+  },
+  "optionalDependencies": {
+    "razorpay": "2.9.8"
+  },
+  "devDependencies": {
+    "@annaadhya/config": "workspace:*",
+    "@nestjs/cli": "^11.0.5",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "rolldown": "1.2.14",
+    "typescript": "5.9.3",
+    "vitest": "^2.1.8"
+  }
+}

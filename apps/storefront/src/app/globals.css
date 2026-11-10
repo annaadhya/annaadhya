@@ -1,0 +1,322 @@
+@import "tailwindcss";
+
+/*
+ * Annaadhya design system — "Modern Indian Heritage"
+ * Canonical tokens from design.md (design_file.md). Heritage-named colors from the
+ * approved brief coexist as explicit tokens; legacy class names (cream, forest,
+ * honey, ink…) are remapped onto the new palette so un-redesigned pages stay coherent.
+ */
+@theme {
+  /* --- Core brand (Material-3 style roles) --- */
+  --color-primary: #541620;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #702c35; /* Heritage Maroon — main CTA surface */
+  --color-on-primary-container: #f2959e;
+  --color-primary-fixed: #ffdadb;
+  --color-primary-fixed-dim: #ffb2b8;
+  --color-on-primary-fixed: #3d0510;
+  --color-on-primary-fixed-variant: #753039;
+
+  --color-secondary: #476554;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #c6e8d3;
+  --color-on-secondary-container: #4b6958;
+  --color-secondary-fixed: #c9ead5;
+  --color-secondary-fixed-dim: #adceba;
+  --color-on-secondary-fixed: #032014;
+  --color-on-secondary-fixed-variant: #304d3d;
+
+  --color-tertiary: #3c2900;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #583e00;
+  --color-on-tertiary-container: #d3a955; /* Antique Saffron Gold — filigree accents */
+  --color-tertiary-fixed: #ffdea5;
+  --color-tertiary-fixed-dim: #edc06a;
+  --color-on-tertiary-fixed: #261900;
+  --color-on-tertiary-fixed-variant: #5d4200;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* --- Surfaces (warm ivory ladder) --- */
+  --color-background: #fff8f5;
+  --color-on-background: #271810;
+  --color-surface: #fff8f5;
+  --color-surface-dim: #f0d5c6;
+  --color-surface-bright: #fff8f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1ea;
+  --color-surface-container: #ffeae0;
+  --color-surface-container-high: #ffe3d4;
+  --color-surface-container-highest: #f9ddce;
+  --color-surface-variant: #f9ddce;
+  --color-on-surface: #271810;
+  --color-on-surface-variant: #534344;
+  --color-outline: #867273;
+  --color-outline-variant: #d9c1c2;
+  --color-inverse-surface: #3d2d23;
+  --color-inverse-on-surface: #ffede5;
+  --color-inverse-primary: #ffb2b8;
+  --color-surface-tint: #934750;
+
+  /* --- Heritage-named extras (approved brief palette) --- */
+  --color-ivory: #fbf5e9; /* editorial canvas (footer) */
+  --color-umber: #45342a; /* deep spiced umber — footer text */
+  --color-umber-soft: #756054; /* footer body copy */
+  --color-soft-cream: #fffdf8; /* elevation-1 cards */
+  --color-line-warm: #e6d8c3; /* input borders */
+  --color-heritage-green: #294637; /* forest green (prose palette) */
+  --color-gold: #d3a955;
+  --color-gold-bright: #edc06a;
+  --color-gold-deep: #c39a48;
+
+  /* --- Typography --- */
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --text-display-lg: 3.5rem;
+  --text-display-lg--line-height: 4.25rem;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 600;
+  --text-display-lg-mobile: 2.25rem;
+  --text-display-lg-mobile--line-height: 2.75rem;
+  --text-display-lg-mobile--letter-spacing: -0.01em;
+  --text-display-lg-mobile--font-weight: 600;
+  --text-headline-lg: 2.5rem;
+  --text-headline-lg--line-height: 3rem;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-lg-mobile: 1.75rem;
+  --text-headline-lg-mobile--line-height: 2.25rem;
+  --text-headline-lg-mobile--font-weight: 600;
+  --text-headline-md: 1.75rem;
+  --text-headline-md--line-height: 2.25rem;
+  --text-headline-md--font-weight: 500;
+  --text-headline-sm: 1.375rem;
+  --text-headline-sm--line-height: 1.875rem;
+  --text-headline-sm--font-weight: 500;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-body-md: 0.9375rem;
+  --text-body-md--line-height: 1.5rem;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.25rem;
+  --text-label-lg--letter-spacing: 0.04em;
+  --text-label-lg--font-weight: 600;
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1rem;
+  --text-label-md--letter-spacing: 0.06em;
+  --text-label-md--font-weight: 600;
+  --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 0.875rem;
+  --text-label-sm--letter-spacing: 0.08em;
+  --text-label-sm--font-weight: 700;
+
+  /* --- Radii (design.md scale) --- */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem; /* 8px — inputs, standard cards, buttons */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem; /* 16px — product displays, gift boxes, hero imagery */
+  --radius-xl: 1.5rem;
+  --radius: 0.5rem;
+
+  /* --- Spacing rhythm --- */
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-mobile: 1rem;
+  --spacing-margin: 3rem;
+  --spacing-margin-mobile: 1.25rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.text-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background-color: var(--color-primary-fixed);
+  color: var(--color-on-primary-fixed);
+}
+
+/* ---------- Shared components (design.md specifications) ---------- */
+
+/* Level-1 plinth: soft cream card with gold hairline + warm diffuse shadow */
+.card-soft {
+  background: var(--color-soft-cream);
+  border: 1px solid rgb(211 169 85 / 0.25);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 10px 30px -10px rgb(84 22 32 / 0.08),
+    0 4px 12px -2px rgb(69 52 42 / 0.05);
+}
+
+/* Primary action — Heritage Maroon plinth, gold inset ring, 8px radius */
+.btn-primary {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgb(211 169 85 / 0.3);
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary);
+  box-shadow:
+    inset 0 0 0 1px rgb(211 169 85 / 0.3),
+    0 10px 30px -10px rgb(84 22 32 / 0.35);
+}
+.btn-primary:active {
+  transform: scale(0.985);
+}
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secondary action — Forest Trust */
+.btn-secondary {
+  background-color: var(--color-heritage-green);
+  color: var(--color-on-secondary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: background-color 0.18s ease;
+}
+.btn-secondary:hover {
+  background-color: #1f3528;
+}
+
+/* Ornamental ghost — artisanal gold outline */
+.btn-outline {
+  border: 1.5px solid var(--color-gold);
+  color: var(--color-primary-container);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: background-color 0.18s ease;
+}
+.btn-outline:hover {
+  background-color: rgb(211 169 85 / 0.08);
+}
+
+/* Text inputs — 48px, warm border, maroon focus ring */
+.input-base {
+  width: 100%;
+  min-height: 3rem;
+  border: 1.5px solid var(--color-line-warm);
+  border-radius: var(--radius-sm);
+  background: var(--color-soft-cream);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9375rem;
+  color: var(--color-on-surface);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.input-base:focus {
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 3px rgb(112 44 53 / 0.1);
+}
+.input-base::placeholder {
+  color: var(--color-on-surface-variant);
+}
+
+/* Heritage gold hairline divider */
+.motif-divider {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgb(195 154 72 / 0.55) 18%,
+    rgb(195 154 72 / 0.55) 82%,
+    transparent
+  );
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary-container);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Rich-text product descriptions (admin toolbar output — sanitised before render) */
+.rich-text > * + * {
+  margin-top: 0.75em;
+}
+.rich-text ul,
+.rich-text ol {
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.rich-text ul {
+  list-style: disc;
+}
+.rich-text ol {
+  list-style: decimal;
+}
+.rich-text a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-text blockquote {
+  border-left: 3px solid var(--color-tertiary);
+  padding-left: 0.9rem;
+  font-style: italic;
+}
+
+/* Brand mark responsive sizing — the Logo component sets --logo-size (and
+   optionally a larger --logo-size-mobile for phones). Pure CSS swap: no JS
+   breakpoint logic, no hydration mismatch, and every other call site keeps
+   its exact rendered size. */
+.brand-mark-size {
+  height: var(--logo-size, 40px);
+  width: var(--logo-size, 40px);
+}
+@media (max-width: 639.98px) {
+  .brand-mark-size {
+    height: var(--logo-size-mobile, var(--logo-size, 40px));
+    width: var(--logo-size-mobile, var(--logo-size, 40px));
+  }
+}

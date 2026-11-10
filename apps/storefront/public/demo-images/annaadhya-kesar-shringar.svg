@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Kesar Shringar demo placeholder image">
+  <rect width="600" height="600" fill="#F8E3C0"/>
+  <polygon points="109.4,73.0 109.4,107.0 80.0,124.0 50.6,107.0 50.6,73.0 80.0,56.0" fill="#D97C2B" opacity="0.18"/>
+  <polygon points="548.1,58.0 548.1,102.0 510.0,124.0 471.9,102.0 471.9,58.0 510.0,36.0" fill="#D97C2B" opacity="0.22"/>
+  <polygon points="556.0,505.0 556.0,535.0 530.0,550.0 504.0,535.0 504.0,505.0 530.0,490.0" fill="#A4531A" opacity="0.14"/>
+  <polygon points="104.6,490.0 104.6,530.0 70.0,550.0 35.4,530.0 35.4,490.0 70.0,470.0" fill="#D97C2B" opacity="0.16"/>
+  <ellipse cx="300" cy="510" rx="190" ry="26" fill="#A4531A" opacity="0.12"/>
+  <path d="M205 300 Q205 250 240 240 L360 240 Q395 250 395 300 L388 430 Q386 470 350 472 L250 472 Q214 470 212 430 Z" fill="#D97C2B"/>
+  <path d="M205 300 Q205 250 240 240 L360 240 Q395 250 395 300 L388 430 Q386 470 350 472 L250 472 Q214 470 212 430 Z" fill="none" stroke="#A4531A" stroke-width="5"/>
+  <rect x="228" y="222" width="144" height="26" rx="9" fill="#A4531A"/>
+  <rect x="248" y="318" width="104" height="110" rx="6" fill="#FFFDF6"/>
+  <text x="300" y="352" text-anchor="middle" font-family="Georgia, serif" font-size="17" font-weight="bold" fill="#7A3A10">Annaadhya</text>
+  <text x="300" y="376" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#7A3A10">Demo pack</text>
+  <polygon points="310.4,402.0 310.4,414.0 300.0,420.0 289.6,414.0 289.6,402.0 300.0,396.0" fill="#D97C2B" opacity="0.8"/>
+  <text x="300" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7A3A10" opacity="0.65">Kesar Shringar — demo image</text>
+</svg>

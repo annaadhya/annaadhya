@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Environment & secrets — never commit real credentials
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.pem
+*.key
+firebase-service-account*.json
+serviceAccountKey*.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test artifacts
+playwright-report/
+test-results/
+blob-report/
+
+# Local data files (dev in-memory dumps, scratch)
+/data/
+/tmp/
+
+# Generated at build time by apps/api/scripts/bundle-vercel.mjs
+apps/api/src/.generated-main.js

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Royal Shahi Hamper demo placeholder image">
+  <rect width="600" height="600" fill="#F3E2D8"/>
+  <polygon points="117.7,84.0 117.7,116.0 90.0,132.0 62.3,116.0 62.3,84.0 90.0,68.0" fill="#A64450" opacity="0.16"/>
+  <polygon points="551.4,69.0 551.4,111.0 515.0,132.0 478.6,111.0 478.6,69.0 515.0,48.0" fill="#A64450" opacity="0.2"/>
+  <polygon points="561.0,500.0 561.0,530.0 535.0,545.0 509.0,530.0 509.0,500.0 535.0,485.0" fill="#702C35" opacity="0.14"/>
+  <polygon points="96.2,497.0 96.2,533.0 65.0,551.0 33.8,533.0 33.8,497.0 65.0,479.0" fill="#A64450" opacity="0.15"/>
+  <ellipse cx="300" cy="512" rx="195" ry="26" fill="#702C35" opacity="0.12"/>
+  <rect x="165" y="285" width="270" height="190" rx="14" fill="#A64450"/>
+  <rect x="165" y="285" width="270" height="190" rx="14" fill="none" stroke="#702C35" stroke-width="5"/>
+  <path d="M165 320 Q300 250 435 320 L435 285 Q435 262 410 262 L190 262 Q165 262 165 285 Z" fill="#702C35"/>
+  <rect x="272" y="252" width="56" height="34" rx="7" fill="#E9C46A" stroke="#B07E1F" stroke-width="3"/>
+  <rect x="288" y="285" width="24" height="46" rx="6" fill="#E9C46A" stroke="#B07E1F" stroke-width="3"/>
+  <rect x="225" y="345" width="150" height="96" rx="7" fill="#FFFDF6"/>
+  <text x="300" y="380" text-anchor="middle" font-family="Georgia, serif" font-size="17" font-weight="bold" fill="#58452F">Annaadhya</text>
+  <text x="300" y="404" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#58452F">Demo hamper</text>
+  <polygon points="309.5,419.5 309.5,430.5 300.0,436.0 290.5,430.5 290.5,419.5 300.0,414.0" fill="#A64450" opacity="0.75"/>
+  <path d="M165 430 L435 430" stroke="#E9C46A" stroke-width="6" opacity="0.85"/>
+  <text x="300" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#58452F" opacity="0.65">Royal Shahi Hamper — demo image</text>
+</svg>

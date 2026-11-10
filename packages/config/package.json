@@ -1,0 +1,6 @@
+{
+  "name": "@annaadhya/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": ["tsconfig.app.json", "tsconfig.react.json", "tsconfig.node.json", "eslint-preset.cjs"]
+}

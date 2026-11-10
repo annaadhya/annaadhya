@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" role="img" aria-label="Annaadhya products arrangement">
+  <rect width="900" height="640" fill="#F6EEDD"/>
+  <polygon points="155.0,84.0 155.0,136.0 110.0,162.0 65.0,136.0 65.0,84.0 110.0,58.0" fill="#C99A3C" opacity="0.25"/>
+  <polygon points="231.2,72.0 231.2,108.0 200.0,126.0 168.8,108.0 168.8,72.0 200.0,54.0" fill="#1E4D3B" opacity="0.15"/>
+  <polygon points="832.0,110.0 832.0,170.0 780.0,200.0 728.0,170.0 728.0,110.0 780.0,80.0" fill="#C99A3C" opacity="0.22"/>
+  <polygon points="878.1,498.0 878.1,542.0 840.0,564.0 801.9,542.0 801.9,498.0 840.0,476.0" fill="#1E4D3B" opacity="0.12"/>
+  <polygon points="122.9,521.0 122.9,559.0 90.0,578.0 57.1,559.0 57.1,521.0 90.0,502.0" fill="#C99A3C" opacity="0.2"/>
+  <ellipse cx="450" cy="540" rx="300" ry="34" fill="#1E4D3B" opacity="0.1"/>
+  <path d="M330 300 Q330 240 375 228 L470 228 Q515 240 515 300 L505 470 Q503 516 455 518 L390 518 Q342 516 340 470 Z" fill="#E4B95B" stroke="#B07E1F" stroke-width="6"/>
+  <rect x="360" y="206" width="160" height="30" rx="10" fill="#B07E1F"/>
+  <rect x="390" y="320" width="120" height="130" rx="7" fill="#FFFDF6"/>
+  <text x="450" y="362" text-anchor="middle" font-family="Georgia, serif" font-size="21" font-weight="bold" fill="#8A5A12">Annaadhya</text>
+  <text x="450" y="390" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#8A5A12">Wild honey</text>
+  <polygon points="461.3,411.5 461.3,424.5 450.0,431.0 438.7,424.5 438.7,411.5 450.0,405.0" fill="#E4B95B" opacity="0.9"/>
+  <path d="M560 330 Q560 295 595 290 L640 290 Q675 295 675 330 L668 480 Q666 512 632 514 L603 514 Q569 512 567 480 Z" fill="#C98A4B" stroke="#8F5A28" stroke-width="5"/>
+  <rect x="592" y="370" width="52" height="105" rx="5" fill="#FFFDF6"/>
+  <text x="618" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#6B3E1B" transform="rotate(-90 618 428)">DRY FRUITS</text>
+  <circle cx="265" cy="430" r="72" fill="#D97C2B" stroke="#A4531A" stroke-width="5"/>
+  <text x="265" y="425" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="bold" fill="#7A3A10">KESAR</text>
+  <text x="265" y="447" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7A3A10">small batch</text>
+  <text x="450" y="606" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#6B6353" opacity="0.6">Annaadhya Products — demo hero image</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Akhrot Amrit demo placeholder image">
+  <rect width="600" height="600" fill="#F1E4D3"/>
+  <polygon points="116.0,85.0 116.0,115.0 90.0,130.0 64.0,115.0 64.0,85.0 90.0,70.0" fill="#8F5A28" opacity="0.14"/>
+  <polygon points="554.6,100.0 554.6,140.0 520.0,160.0 485.4,140.0 485.4,100.0 520.0,80.0" fill="#C98A4B" opacity="0.2"/>
+  <polygon points="569.4,493.0 569.4,527.0 540.0,544.0 510.6,527.0 510.6,493.0 540.0,476.0" fill="#C98A4B" opacity="0.18"/>
+  <polygon points="82.5,507.0 82.5,533.0 60.0,546.0 37.5,533.0 37.5,507.0 60.0,494.0" fill="#8F5A28" opacity="0.12"/>
+  <ellipse cx="300" cy="505" rx="185" ry="24" fill="#8F5A28" opacity="0.12"/>
+  <path d="M195 250 Q195 215 230 212 L370 212 Q405 215 405 250 L400 440 Q398 475 360 477 L240 477 Q202 475 200 440 Z" fill="#C98A4B"/>
+  <path d="M195 250 Q195 215 230 212 L370 212 Q405 215 405 250 L400 440 Q398 475 360 477 L240 477 Q202 475 200 440 Z" fill="none" stroke="#8F5A28" stroke-width="5"/>
+  <path d="M205 250 L395 250" stroke="#8F5A28" stroke-width="4" opacity="0.6"/>
+  <rect x="240" y="300" width="120" height="115" rx="6" fill="#FFFDF6"/>
+  <text x="300" y="334" text-anchor="middle" font-family="Georgia, serif" font-size="17" font-weight="bold" fill="#6B3E1B">Annaadhya</text>
+  <text x="300" y="358" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#6B3E1B">Demo pack</text>
+  <polygon points="309.5,386.5 309.5,397.5 300.0,403.0 290.5,397.5 290.5,386.5 300.0,381.0" fill="#8F5A28" opacity="0.75"/>
+  <text x="300" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#6B3E1B" opacity="0.65">Akhrot Amrit — demo image</text>
+</svg>

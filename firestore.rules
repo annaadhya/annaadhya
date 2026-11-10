@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // DEFAULT DENY — the trusted backend (Admin SDK) bypasses rules by design; these rules
+    // block direct client access to business data. Client apps use the REST API instead.
+
+    // Convenience: customers may read/update their own profile document (non-sensitive fields).
+    // The API mirrors and enforces these constraints server-side.
+    match /customers/{uid} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.uid
+                    // Customers cannot promote themselves or alter business fields server-side guards also protect this
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                         .hasAny(['accountStatus', 'notes', 'isDemo', 'seedBatch']);
+      allow create, delete: if false; // provisioning happens via the API
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

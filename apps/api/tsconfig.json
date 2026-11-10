@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Relative path to the shared config THROUGH THE REPO TREE (not node_modules).
+  // Vercel's rolldown function bundler resolves `extends` without following pnpm
+  // symlinks: via apps/api/node_modules/@annaadhya/config the inner
+  // "../../tsconfig.base.json" would resolve to apps/api/node_modules/tsconfig.base.json
+  // and crash the build ("Tsconfig not found"). tsc follows realpaths, so this only
+  // broke Vercel. A repo-relative extends works for both resolvers.
+  "extends": "../../packages/config/tsconfig.node.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "types": ["node"],
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
+  },
+  "include": ["src", "tests"]
+}

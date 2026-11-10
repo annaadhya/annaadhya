@@ -1,0 +1,33 @@
+{
+  "name": "@annaadhya/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./cms-design": {
+      "types": "./src/cms-design.ts",
+      "default": "./dist/cms-design.js"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run --passWithNoTests",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@annaadhya/utils": "workspace:*",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@annaadhya/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "typescript": "5.9.3",
+    "vitest": "^2.1.8"
+  }
+}

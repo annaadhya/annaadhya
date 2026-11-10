@@ -1,0 +1,27 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "storefront": {
+      "root": "apps/storefront",
+      "framework": "nextjs",
+      "bindings": [
+        { "type": "service", "service": "api", "format": "url", "env": "API_URL" }
+      ]
+    },
+    "admin": {
+      "root": "apps/admin",
+      "framework": "nextjs"
+    },
+    "api": {
+      "root": "apps/api",
+      "framework": "nestjs",
+      "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @annaadhya/contracts --filter @annaadhya/data-core --filter @annaadhya/utils run build && pnpm run build && node scripts/bundle-vercel.mjs"
+    }
+  },
+  "rewrites": [
+    { "source": "/admin", "destination": { "service": "admin" } },
+    { "source": "/admin/(.*)", "destination": { "service": "admin" } },
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "storefront" } }
+  ]
+}

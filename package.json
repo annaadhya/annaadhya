@@ -1,0 +1,33 @@
+{
+  "name": "annaadhya-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Annaadhya Products \u2014 Indian e-commerce platform (storefront, admin, API).",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @annaadhya/api dev & pnpm --filter @annaadhya/storefront dev",
+    "dev:api": "pnpm --filter @annaadhya/api dev",
+    "dev:storefront": "pnpm --filter @annaadhya/storefront dev",
+    "dev:admin": "pnpm --filter @annaadhya/admin dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @annaadhya/api build",
+    "build:storefront": "pnpm --filter @annaadhya/storefront build",
+    "build:admin": "pnpm --filter @annaadhya/admin build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "seed:validate": "pnpm --filter @annaadhya/seed-demo-data validate",
+    "seed:dry-run": "pnpm --filter @annaadhya/seed-demo-data dry-run",
+    "seed:demo": "pnpm --filter @annaadhya/seed-demo-data seed",
+    "seed:reset-demo": "pnpm --filter @annaadhya/seed-demo-data reset-demo",
+    "import:catalogue": "pnpm --filter @annaadhya/import-catalogue start"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "typescript-eslint": "^8.30.0"
+  }
+}

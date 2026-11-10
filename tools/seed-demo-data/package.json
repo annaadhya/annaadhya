@@ -1,0 +1,24 @@
+{
+  "name": "@annaadhya/seed-demo-data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "tsx src/cli.ts validate",
+    "dry-run": "tsx src/cli.ts dry-run",
+    "seed": "tsx src/cli.ts seed",
+    "reset-demo": "tsx src/cli.ts reset-demo"
+  },
+  "dependencies": {
+    "@annaadhya/contracts": "workspace:*",
+    "@annaadhya/data-core": "workspace:*",
+    "@annaadhya/utils": "workspace:*",
+    "firebase-admin": "13.10.0",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@annaadhya/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "typescript": "5.9.3"
+  }
+}
