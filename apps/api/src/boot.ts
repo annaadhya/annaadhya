@@ -8,6 +8,15 @@ import * as http from "node:http";
 import { resolve } from "node:path";
 import type { DataClient } from "@annaadhya/data-core";
 
+/**
+ * Entrypoint-scanner marker (mirrors src/main.ts): platform entrypoint scanners
+ * (Vercel find-entrypoint) reject candidate files whose source text lacks an
+ * @nestjs/core import. Type-only, so it is erased at compile time and the
+ * runtime dependency graph stays fully dynamic inside boot().
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { NestFactory } from "@nestjs/core";
+
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.

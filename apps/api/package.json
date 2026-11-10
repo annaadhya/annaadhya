@@ -2,10 +2,10 @@
   "name": "@annaadhya/api",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/src/main.js",
+  "main": "dist/src/boot.js",
   "scripts": {
     "dev": "npx tsx watch src/boot.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/emit-dist-main.mjs",
     "start": "node dist/src/boot.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --max-warnings 0",
