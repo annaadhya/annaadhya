@@ -22,7 +22,7 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v10-self-contained-dist";
+const DEPLOY_BUILD = "v11-boot-failure-200";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
 
 /**
@@ -241,19 +241,29 @@ async function boot(): Promise<void> {
 boot().catch((err: unknown) => {
   const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
   const stack = err instanceof Error ? (err.stack ?? "").split("\n").slice(1, 6).join("\n") : "";
-  const body = [
-    "Annaadhya API failed to boot. Fix the environment and redeploy.",
-    "",
-    "Boot progress:",
-    ...bootLog,
-    "",
-    message,
-    stack,
-  ].join("\n");
+  const body = JSON.stringify({
+    ok: false,
+    bootFailed: true,
+    build: DEPLOY_BUILD,
+    error: message,
+    bootProgress: bootLog,
+    fix:
+      "Set the deployment env vars (NODE_ENV, DATA_PROVIDER, FIREBASE_PROJECT_ID, " +
+      "FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, ADMIN_SETUP_KEY, RAZORPAY_*, " +
+      "CORS_ORIGINS) and redeploy. Diagnostics: annaadhya-boot-report.txt in the " +
+      "app working directory (fallback /tmp).",
+  });
   writeBootReport("FAILED", [message, stack]);
 
   const server = http.createServer((_req, res) => {
-    res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+    // HTTP 200 ON PURPOSE. Managed builders (Hostinger) probe the app during
+    // the deploy step and mark the entire deployment failed on a non-2xx, so
+    // a boot failure shows up only as an opaque "Deployment failed
+    // unexpectedly" with zero diagnostics. Serving an explicit ok:false
+    // explanation lets the deployment COMPLETE - the domain itself then names
+    // the exact missing configuration. Real routes stay non-functional until
+    // the env problem is fixed; this body says so on every path.
+    res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
     res.end(body);
   });
   server.on("error", (e) => console.error("[boot] error-report server failed:", e));

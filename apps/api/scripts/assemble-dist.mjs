@@ -127,7 +127,7 @@ let pruned = 0;
         continue;
       }
       walk(p);
-    } else if (/\.md$|\.map$|^LICENSE|^AUTHORS/i.test(e.name)) {
+    } else if (/\.md$|\.map$|\.d\.ts$|^LICENSE|^AUTHORS/i.test(e.name)) {
       rmSync(p, { force: true });
       pruned++;
     }
