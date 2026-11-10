@@ -107,9 +107,37 @@ if (symlinks > 0) {
   process.exit(1);
 }
 
+// Size insurance for the platform's deploy copy: strip files no runtime
+// require() can reach - docs, source maps, license/author texts, VCS metadata.
+// Keeps code, JSON (schemas/configs), and .d.ts type declarations untouched.
+let pruned = 0;
+(function walk(d) {
+  let entries;
+  try {
+    entries = readdirSync(d, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const e of entries) {
+    const p = join(d, e.name);
+    if (e.isDirectory()) {
+      if (e.name === ".github") {
+        rmSync(p, { recursive: true, force: true });
+        pruned++;
+        continue;
+      }
+      walk(p);
+    } else if (/\.md$|\.map$|^LICENSE|^AUTHORS/i.test(e.name)) {
+      rmSync(p, { force: true });
+      pruned++;
+    }
+  }
+})(nm);
+
 console.log(
   `[assemble-dist] dist/node_modules: ${readdirSync(nm).length} top-level entries, ` +
-    `${sanitized} .bin/symlink artifacts stripped, ${symlinks} symlinks left`,
+    `${sanitized} .bin/symlink artifacts stripped, ${symlinks} symlinks left, ` +
+    `${pruned} doc/map/license files pruned`,
 );
 
 // Runtime manifest inside the output dir: Hostinger's KB says the entry file
@@ -132,5 +160,12 @@ writeFileSync(
     2,
   ) + "\n",
 );
+
+try {
+  const du = spawnSync("du", ["-sh", dist], { encoding: "utf8" });
+  if (du.status === 0) console.log(`[assemble-dist] dist size: ${du.stdout.trim().split(/\s+/)[0]}`);
+} catch {
+  // du unavailable - skip
+}
 
 console.log("[assemble-dist] done - dist is self-contained (main.js + src/ + node_modules/ + package.json)");

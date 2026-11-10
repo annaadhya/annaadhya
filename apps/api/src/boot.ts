@@ -5,6 +5,8 @@
 // carries no diagnostic information. Static imports are limited to node builtins and
 // type-only imports (erased at compile time).
 import * as http from "node:http";
+import * as fs from "node:fs";
+import * as os from "node:os";
 import { resolve } from "node:path";
 import type { DataClient } from "@annaadhya/data-core";
 
@@ -22,6 +24,71 @@ const bootLog: string[] = [];
 // live deployment's exact build is identifiable from outside the dashboard.
 const DEPLOY_BUILD = "v10-self-contained-dist";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
+
+/**
+ * File-based boot oracle for managed builders whose stderr.log is not exposed:
+ * every boot writes annaadhya-boot-report.txt into the process working
+ * directory (fallback: os.tmpdir()) with the exact verdict, which env vars are
+ * SET vs unset (values never printed for secrets), and the boot progress log.
+ * The report path is always echoed to stderr as well. Presence of the file at
+ * all proves the process started; its content names the failing boot step.
+ */
+const REPORT_FILE = "annaadhya-boot-report.txt";
+const REPORTED_ENV_KEYS = [
+  "NODE_ENV",
+  "DATA_PROVIDER",
+  "PORT",
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_CLIENT_EMAIL",
+  "FIREBASE_PRIVATE_KEY",
+  "FIRESTORE_DATABASE_ID",
+  "ADMIN_SETUP_KEY",
+  "PAYMENT_PROVIDER",
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_KEY_SECRET",
+  "CORS_ORIGINS",
+] as const;
+
+function writeBootReport(status: string, extra: string[] = []): void {
+  const envLines = REPORTED_ENV_KEYS.map((key) => {
+    const value = process.env[key];
+    if (value === undefined || value === "") return `${key}: unset`;
+    if (key === "CORS_ORIGINS") {
+      return `${key}: ${value.split(",").map((o) => o.trim()).join(" | ")}`;
+    }
+    if (key === "FIREBASE_PRIVATE_KEY" || key === "ADMIN_SETUP_KEY" || key === "RAZORPAY_KEY_SECRET") {
+      return `${key}: SET (${value.length} chars)`;
+    }
+    return `${key}: ${value}`;
+  });
+  const body = [
+    `Annaadhya API boot report - ${status}`,
+    `time: ${new Date().toISOString()}`,
+    `build: ${DEPLOY_BUILD}`,
+    `cwd: ${process.cwd()}`,
+    `entry dir: __dirname=${typeof __dirname === "string" ? __dirname : "(esm)"}`,
+    `PORT injected by platform: ${process.env.PORT ?? "(not set)"}`,
+    "",
+    "environment (secret values hidden):",
+    ...envLines,
+    "",
+    "boot progress:",
+    ...bootLog,
+    "",
+    ...extra,
+  ].join("\n") + "\n";
+  console.error(`[boot] report (${status}):\n${body}`);
+  for (const dir of [process.cwd(), os.tmpdir()]) {
+    try {
+      const target = resolve(dir, REPORT_FILE);
+      fs.writeFileSync(target, body);
+      console.error(`[boot] report written: ${target}`);
+      return;
+    } catch {
+      // read-only or missing - try the next location
+    }
+  }
+}
 
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
   try {
@@ -161,6 +228,8 @@ async function boot(): Promise<void> {
   console.info(
     `Mode: provider=${env.DATA_PROVIDER} auth=${env.firebaseConfigured ? "firebase" : "mock-dev-tokens"} payments=${env.razorpayConfigured ? "razorpay" : "mock"}${env.isProduction ? " PRODUCTION" : " (sandbox)"}`,
   );
+
+  writeBootReport("ok");
 }
 
 /**
@@ -181,7 +250,7 @@ boot().catch((err: unknown) => {
     message,
     stack,
   ].join("\n");
-  console.error("[boot] API failed to start:\n" + body);
+  writeBootReport("FAILED", [message, stack]);
 
   const server = http.createServer((_req, res) => {
     res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
