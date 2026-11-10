@@ -13,8 +13,11 @@
  * we move that node_modules into dist and remove the temp. Result:
  *
  *   apps/api/dist/main.js          (launcher: require("./src/boot.js"))
+ *   apps/api/dist/boot.js          (launcher twin for the entry variant)
+ *   apps/api/dist/src/main.js      (launcher twin for the entry variant)
  *   apps/api/dist/src/**           (compiled bootstrap)
  *   apps/api/dist/node_modules/**  (prod deps, hoisted real files)
+ *   apps/api/dist/package.json     (runtime manifest, entry = src/boot.js)
  *
  * Skipped on Vercel (its pipeline bundles its own entrypoint via
  * .generated-main.js) or when ASSEMBLE_DIST=0. Runs after tsc +
@@ -108,8 +111,16 @@ if (symlinks > 0) {
 }
 
 // Size insurance for the platform's deploy copy: strip files no runtime
-// require() can reach - docs, source maps, license/author texts, VCS metadata.
-// Keeps code, JSON (schemas/configs), and .d.ts type declarations untouched.
+// require() can reach - docs, source maps, license/author texts, VCS metadata,
+// plus the node-prune-style safe set (test/ coverage/ editor dirs, tsbuildinfo
+// patches). Keeps code, JSON (schemas/configs), and .d.ts type declarations
+// untouched. Every byte/file removed shortens the deploy copy step, which is
+// the suspected truncation point (deploy gap scales with output size).
+const PRUNE_DIRS = new Set([
+  ".github", "test", "tests", "__tests__", "example", "examples",
+  "docs", "doc", "coverage", ".nyc_output", ".vscode", ".idea",
+]);
+const PRUNE_FILES = /\.md$|\.map$|\.d\.ts$|\.tsbuildinfo$|\.patch$|\.tgz$|^LICENSE|^AUTHORS|^\.eslintrc|^\.prettierrc|^\.babelrc|^\.jshintrc|\.npmignore$/i;
 let pruned = 0;
 (function walk(d) {
   let entries;
@@ -121,13 +132,13 @@ let pruned = 0;
   for (const e of entries) {
     const p = join(d, e.name);
     if (e.isDirectory()) {
-      if (e.name === ".github") {
+      if (PRUNE_DIRS.has(e.name)) {
         rmSync(p, { recursive: true, force: true });
         pruned++;
         continue;
       }
       walk(p);
-    } else if (/\.md$|\.map$|\.d\.ts$|^LICENSE|^AUTHORS/i.test(e.name)) {
+    } else if (PRUNE_FILES.test(e.name)) {
       rmSync(p, { force: true });
       pruned++;
     }
@@ -140,10 +151,13 @@ console.log(
     `${pruned} doc/map/license files pruned`,
 );
 
-// Runtime manifest inside the output dir: Hostinger's KB says the entry file
-// "defaults to the start command in your package.json" - if the platform
-// resolves that from the OUTPUT directory, this is the file it reads. Covers
-// every startup convention at once: Entry File main.js, node main.js,
+// Runtime manifest inside the output dir: Hostinger's NestJS preset resolves
+// the entry file relative to the OUTPUT directory, and the platform's own
+// deploy diagnosis for this repo prescribes entry = src/boot.js (the compiled
+// bootstrap lives at dist/src/boot.js because tsc's rootDir spans the
+// workspace). main/boot.js launchers stay byte-equivalent entries, so every
+// startup convention boots: Entry File src/boot.js (panel, prescribed),
+// Entry File main.js (NestJS docs default), node src/boot.js, node main.js,
 // npm/node start, node . (main field). No "type" surprises: explicit CJS.
 writeFileSync(
   join(dist, "package.json"),
@@ -153,8 +167,15 @@ writeFileSync(
       version: "0.1.0",
       private: true,
       type: "commonjs",
-      main: "main.js",
-      scripts: { start: "node main.js" },
+      main: "src/boot.js",
+      scripts: {
+        start: "node src/boot.js",
+        "start:main": "node main.js",
+      },
+      annaadhya: {
+        entryCandidates: ["src/boot.js", "main.js", "boot.js", "src/main.js"],
+        build: "v12-entry-hardening",
+      },
     },
     null,
     2,
@@ -168,4 +189,4 @@ try {
   // du unavailable - skip
 }
 
-console.log("[assemble-dist] done - dist is self-contained (main.js + src/ + node_modules/ + package.json)");
+console.log("[assemble-dist] done - dist is self-contained (main.js + boot.js + src/ + node_modules/ + package.json)");

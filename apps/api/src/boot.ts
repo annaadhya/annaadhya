@@ -22,8 +22,41 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v11-boot-failure-200";
+const DEPLOY_BUILD = "v12-entry-hardening";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
+
+/**
+ * Directory census for the boot report: when the platform's publish step
+ * truncates or transforms the artifact (e.g. packing the output dir with
+ * npm-pack semantics, which always drops node_modules), the entry chain dies
+ * on MODULE_NOT_FOUND before any HTTP server exists. The catch-path report
+ * still runs, so a compact census of the process working directory and the
+ * entry directory becomes the definitive answer about what the platform
+ * actually published - instead of another blind fix round.
+ */
+function dirCensus(dir: string, label: string, withDeps = true): string[] {
+  const lines: string[] = [`${label}: ${dir}`];
+  try {
+    const names = fs.readdirSync(dir);
+    lines.push(`${label} top-level (${names.length} entries): ${names.slice(0, 40).join(", ")}${names.length > 40 ? " ..." : ""}`);
+    const nm = resolve(dir, "node_modules");
+    if (withDeps) {
+      lines.push(
+        fs.existsSync(nm)
+          ? `${label}/node_modules: PRESENT (${fs.readdirSync(nm).length} top-level packages)`
+          : `${label}/node_modules: MISSING <- runtime deps would not resolve`,
+      );
+    }
+    const srcDir = resolve(dir, "src");
+    if (fs.existsSync(srcDir)) {
+      const srcFiles = fs.readdirSync(srcDir);
+      lines.push(`${label}/src: PRESENT (${srcFiles.slice(0, 20).join(", ")}${srcFiles.length > 20 ? " ..." : ""})`);
+    }
+  } catch (e) {
+    lines.push(`${label}: unreadable (${e instanceof Error ? e.message : String(e)})`);
+  }
+  return lines;
+}
 
 /**
  * File-based boot oracle for managed builders whose stderr.log is not exposed:
@@ -67,10 +100,17 @@ function writeBootReport(status: string, extra: string[] = []): void {
     `build: ${DEPLOY_BUILD}`,
     `cwd: ${process.cwd()}`,
     `entry dir: __dirname=${typeof __dirname === "string" ? __dirname : "(esm)"}`,
+    `argv: ${JSON.stringify(process.argv.slice(0, 4))}`,
     `PORT injected by platform: ${process.env.PORT ?? "(not set)"}`,
     "",
     "environment (secret values hidden):",
     ...envLines,
+    "",
+    "published directory census:",
+    ...dirCensus(process.cwd(), "cwd"),
+    ...(typeof __dirname === "string" && resolve(__dirname) !== resolve(process.cwd())
+      ? dirCensus(__dirname, "entry dir", false)
+      : []),
     "",
     "boot progress:",
     ...bootLog,
