@@ -140,6 +140,31 @@ export function Footer({
             ))}
           </div>
         </div>
+
+        {/* Founder credit + direct contact (2026-11-11). Email opens the mail
+            client; WhatsApp deep-links to the chat via wa.me, which requires
+            the number in international form without "+" or spaces (916397729073).
+            wa.me opens in a new tab so the storefront stays put. */}
+        <div className="mt-space-md flex flex-wrap items-center justify-center gap-x-space-md gap-y-space-xs text-center text-label-sm text-umber-soft">
+          <span>Made with care by Kartik Kumar.</span>
+          <span className="flex items-center gap-space-md">
+            <span aria-hidden>•</span>
+            <a className="transition-colors hover:text-primary" href="mailto:kartikkumar221a@gmail.com">
+              kartikkumar221a@gmail.com
+            </a>
+          </span>
+          <span className="flex items-center gap-space-md">
+            <span aria-hidden>•</span>
+            <a
+              className="transition-colors hover:text-primary"
+              href="https://wa.me/916397729073"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp: +91 6397729073
+            </a>
+          </span>
+        </div>
       </div>
     </footer>
   );
