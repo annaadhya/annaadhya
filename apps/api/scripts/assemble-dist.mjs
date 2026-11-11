@@ -174,7 +174,7 @@ writeFileSync(
       },
       annaadhya: {
         entryCandidates: ["src/boot.js", "main.js", "boot.js", "src/main.js"],
-        build: "v12-entry-hardening",
+        build: "v13-instant-listen",
       },
     },
     null,
