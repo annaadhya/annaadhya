@@ -787,8 +787,8 @@ export default function HomepagePage() {
                   Add collection row
                 </Button>
                 <p className="text-xs text-on-surface-variant">
-                  Rows render only when the category exists in the catalogue; the three curated defaults apply to rows you leave
-                  blank.
+                  Rows render only when the category exists in the catalogue. Saving at least one row makes the grid
+                  fully yours, in your order — the three curated design cards only show while no rows are saved.
                 </p>
               </div>
 

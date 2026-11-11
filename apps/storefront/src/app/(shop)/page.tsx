@@ -127,9 +127,12 @@ export default async function HomePage() {
   // design defaults below, so a fresh CMS doc changes nothing visually.
   const collectionsEnabled = cms?.collections.enabled ?? true;
   const collectionsHeading = cms?.collections.heading?.trim() || "Explore Our Treasures";
-  const cmsCollections = new Map(
-    (cms?.collections.items ?? []).filter((i) => i.categorySlug).map((i) => [i.categorySlug, i]),
-  );
+  // CMS ownership doctrine (matches the trust column + footer nav): when the owner
+  // has saved ANY collection rows in Admin → Storefront → Homepage, the grid is
+  // fully theirs, in their order. Only a completely unconfigured section falls
+  // back to the three curated design cards below. Rows still resolve against the
+  // LIVE catalogue — a row whose category was deleted renders no card.
+  const cmsCollectionRows = (cms?.collections.items ?? []).filter((i) => i.categorySlug.trim() !== "");
   const trustEnabled = cms?.trust.enabled ?? true;
   const cmsTrust = cms?.trust.items ?? [];
   const storyEnabled = cms?.story.enabled ?? true;
@@ -322,46 +325,74 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-space-lg md:grid-cols-3">
-            {COLLECTIONS.map((col) => {
-              const category = bySlug.get(col.slug);
-              if (!category) return null; // catalogue truth wins — no invented categories
-              const over = cmsCollections.get(col.slug);
-              const image = over?.image?.trim() || col.image;
-              const badge = over?.eyebrow?.trim() || col.badge;
-              const copy = over?.description?.trim() || col.copy;
-              const cta = over?.title?.trim() || col.cta;
-              return (
-                <Link
-                  key={col.slug}
-                  href={`/category/${category.slug}`}
-                  className="group flex flex-col overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl"
-                >
-                  <div className="relative h-64 w-full overflow-hidden bg-surface-container sm:h-80">
+            {(cmsCollectionRows.length > 0
+              ? cmsCollectionRows.flatMap((row) => {
+                  const category = bySlug.get(row.categorySlug.trim());
+                  if (!category) return []; // catalogue truth wins — no invented categories
+                  return [
+                    {
+                      key: row.categorySlug,
+                      href: `/category/${category.slug}`,
+                      name: category.name,
+                      image: row.image?.trim() || category.heroImage || "",
+                      alt: `${category.name} collection`,
+                      badge: row.eyebrow?.trim() || "",
+                      copy: row.description?.trim() || category.tagline || "",
+                      cta: row.title?.trim() || `Shop ${category.name}`,
+                    },
+                  ];
+                })
+              : COLLECTIONS.flatMap((col) => {
+                  const category = bySlug.get(col.slug);
+                  if (!category) return []; // catalogue truth wins — no invented categories
+                  return [
+                    {
+                      key: col.slug,
+                      href: `/category/${category.slug}`,
+                      name: category.name,
+                      image: col.image,
+                      alt: col.alt,
+                      badge: col.badge,
+                      copy: col.copy,
+                      cta: col.cta,
+                    },
+                  ];
+                })
+            ).map((card) => (
+              <Link
+                key={card.key}
+                href={card.href}
+                className="group flex flex-col overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl"
+              >
+                <div className="relative h-64 w-full overflow-hidden bg-surface-container sm:h-80">
+                  {card.image ? (
                     <Image
-                      src={image}
-                      alt={over?.image?.trim() ? `${category.name} collection` : col.alt}
+                      src={card.image}
+                      alt={card.alt}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/50 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-60" aria-hidden />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/50 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-60" aria-hidden />
+                  {card.badge ? (
                     <span className="absolute left-4 top-4 rounded-full bg-surface-container-lowest/90 px-3.5 py-1 text-label-sm font-bold uppercase tracking-wider text-primary backdrop-blur-md">
-                      {badge}
+                      {card.badge}
                     </span>
-                  </div>
-                  <div className="flex flex-grow flex-col p-space-lg">
-                    <h3 className="mb-space-xs text-headline-md text-on-surface transition-colors group-hover:text-primary">
-                      {category.name}
-                    </h3>
-                    <p className="mb-space-md flex-grow text-body-md text-on-surface-variant">{copy}</p>
-                    <span className="inline-flex items-center gap-space-xs text-label-lg text-primary transition-colors group-hover:text-primary-container">
-                      {cta}
-                      <IconArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+                  ) : null}
+                </div>
+                <div className="flex flex-grow flex-col p-space-lg">
+                  <h3 className="mb-space-xs text-headline-md text-on-surface transition-colors group-hover:text-primary">
+                    {card.name}
+                  </h3>
+                  <p className="mb-space-md flex-grow text-body-md text-on-surface-variant">{card.copy}</p>
+                  <span className="inline-flex items-center gap-space-xs text-label-lg text-primary transition-colors group-hover:text-primary-container">
+                    {card.cta}
+                    <IconArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

@@ -22,7 +22,7 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v15-hostinger-media";
+const DEPLOY_BUILD = "v16-edge-no-store";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
 
 /**
@@ -277,6 +277,27 @@ async function boot(): Promise<void> {
     } catch (err) {
       bootLog.push(`media static /uploads DISABLED: ${err instanceof Error ? err.message : String(err)}`);
     }
+
+    // Edge-cache honesty (v16, 2026-11-11): managed-host CDNs cache API JSON GETs
+    // when no Cache-Control header is sent — a stale /homepage or /navigation then
+    // lies to the storefront for hours (the "admin edit never shows up" class of
+    // bug: staging's /api/v1/homepage served a doc frozen at first fetch while the
+    // owner's saves were live in Firestore). Every response now defaults to
+    // no-store UNLESS a handler already set a policy: the /uploads static mount
+    // above ends its own responses with the 30d immutable policy before this
+    // middleware runs, and handlers that stamp a header later simply overwrite.
+    // Freshness for CMS data is the storefront's ISR + revalidate webhook's job,
+    // never the edge's.
+    (app.getHttpAdapter().getInstance() as {
+      use(handler: (...args: unknown[]) => void): unknown;
+    }).use((...args: unknown[]) => {
+      const res = args[1] as { getHeader(name: string): unknown; setHeader(name: string, value: string): void };
+      const next = args[2] as () => void;
+      if (res.getHeader("Cache-Control") === undefined) {
+        res.setHeader("Cache-Control", "no-store");
+      }
+      next();
+    });
 
     const expressApp = app.getHttpAdapter().getInstance() as {
       get(
