@@ -15,7 +15,8 @@ process restarts; otherwise deploy to any VPS/container host. Do not force it on
 ## One-time setup
 
 ### Staging
-1. Create staging Firebase project + Razorpay test account + Cloudinary (see environment-setup.md).
+1. Create staging Firebase project + Razorpay test account (see environment-setup.md). Media needs
+   no external service — it stores on the host's own disk (`MEDIA_STORAGE_DIR`).
 2. Vercel: import the repo, add `apps/storefront` and `apps/admin` as two projects with **Root
    Directory** set accordingly; install command `pnpm install`, build `pnpm build` (Vercel runs
    workspace builds in dependency order).

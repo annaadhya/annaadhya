@@ -133,7 +133,9 @@ export interface VariantUpsertPayload {
 
 export interface ProductImage {
   url: string;
-  cloudinaryPublicId?: string;
+  /** Server-side storage key for self-hosted media (path under the media root, e.g.
+   *  "annaadhya/products/202611/…jpg"). Absent for externally referenced imagery. */
+  storagePath?: string;
   alt: string;
   width?: number;
   height?: number;

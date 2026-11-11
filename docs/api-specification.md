@@ -128,8 +128,9 @@ Each route requires the listed permission(s) via `RequirePermissions(...)`.
   newsletter_subscribers; `?includeDemo=true` shows demo records, labelled)
 
 ### Media / Team / Settings / Audit
-- `POST /admin/media/upload-signature` — media:write (short-lived Cloudinary params; 503 if unconfigured)
-- `POST /admin/media/register` — media:write (validates folder + delivery URL)
+- `POST /admin/media/upload` — media:write (multipart `file` + `folder`; writes to self-hosted
+  storage and returns `{ url, storagePath, bytes, mimeType }`; 503 if the media root is unwritable)
+- `GET /uploads/**` — public static delivery of stored media (30-day immutable cache)
 - `GET/POST /admin/team`, `POST /admin/team/:id/role`, `POST /admin/team/:id/status` — team:read/write
 - `GET/POST /admin/settings` — settings:read/write
 - `GET /admin/audit` — audit:read

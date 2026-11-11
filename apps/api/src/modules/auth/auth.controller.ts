@@ -120,7 +120,9 @@ export class AuthController {
       // backend cannot use.
       payments: this.env.razorpayConfigured ? ("razorpay" as const) : ("mock" as const),
       razorpayConfigured: this.env.razorpayConfigured,
-      cloudinaryConfigured: this.env.cloudinaryConfigured,
+      // Media lives on the hosting server's own disk (Hostinger) — no third-party object storage.
+      mediaStorage: "hostinger-local" as const,
+      mediaConfigured: this.env.mediaConfigured,
       sandbox: !this.env.isProduction,
     };
   }

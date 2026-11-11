@@ -28,10 +28,11 @@
  *    the full record — no extra round-trip);
  *  - Delete asks a real confirmation dialog that names the record before the API
  *    call; table/metrics/charts refresh only after the backend confirms;
- *  - receipts: the platform's upload infrastructure (Cloudinary) is not configured
- *    in this deployment, so the form offers an attachment LINK instead of faking an
- *    uploader — a real upload button will be wired to POST /admin/media once the
- *    Cloudinary env vars are set;
+ *  - receipts: the platform's upload infrastructure (self-hosted media on the
+ *    hosting server's disk) is wired through POST /admin/media/upload — expense
+ *    receipts can now attach real uploaded files once the owner uploads them and
+ *    pastes the delivered /uploads/** URL (the form offers a LINK field, honest
+ *    about not embedding its own picker in this drawer);
  *  - raw commodity stock (honey, kesar, dry fruits) is procured under the Purchases
  *    console — creating or editing an expense never touches inventory, and purchase
  *    records never become expenses (no double counting).
@@ -1160,7 +1161,7 @@ export default function ExpensesPage() {
             <Field
               label="Receipt link"
               htmlFor="expense-attachment"
-              hint="Paste a hosted bill/receipt URL — file upload lands when Cloudinary is configured."
+              hint="Paste a hosted bill/receipt URL — upload it via Products media or paste any hosted link."
             >
               <Input
                 id="expense-attachment"

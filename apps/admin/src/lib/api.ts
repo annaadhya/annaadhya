@@ -45,7 +45,8 @@ export interface DevLoginResponse {
     authentication: "firebase" | "mock-dev-tokens";
     payments: string;
     razorpayConfigured: boolean;
-    cloudinaryConfigured: boolean;
+    mediaStorage: string;
+    mediaConfigured: boolean;
     sandbox: boolean;
   };
 }
@@ -189,6 +190,58 @@ export const apiPost = <T>(path: string, body?: unknown, query?: RequestOptions[
 export const apiPatch = <T>(path: string, body?: unknown, query?: RequestOptions["query"]) =>
   api<T>(path, { method: "PATCH", body: body ?? {}, query });
 export const apiDelete = <T>(path: string) => api<T>(path, { method: "DELETE" });
+
+/**
+ * Multipart file upload with progress reporting (XMLHttpRequest is the only browser
+ * primitive that exposes upload progress). Posts FormData {file, folder} to the API,
+ * unwraps the envelope and throws ApiError exactly like api().
+ */
+export function uploadFile<T>(
+  path: string,
+  file: File,
+  folder: string,
+  onProgress?: (percent: number) => void,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const token = getToken();
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}${path}`);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.responseType = "text";
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    });
+    xhr.addEventListener("load", () => {
+      let body: unknown = null;
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch {
+        // non-JSON body (e.g. empty 502 page)
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && body && (body as { ok?: boolean }).ok === true) {
+        resolve((body as { ok: true; data: T }).data);
+      } else {
+        const err = (body as ApiErrorBody | null)?.error;
+        reject(
+          new ApiError(
+            err?.message ?? `Upload failed with status ${xhr.status}`,
+            err?.code ?? "internal",
+            xhr.status,
+            err?.details,
+          ),
+        );
+      }
+    });
+    xhr.addEventListener("error", () => reject(new ApiError("Network error while uploading. Is the backend running?", "network_error", 0)));
+    xhr.addEventListener("abort", () => reject(new ApiError("Upload aborted.", "network_error", 0)));
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", folder);
+    xhr.send(form);
+  });
+}
 
 /** Permission check against the stored principal's permission list. */
 export function can(principal: AuthPrincipal | null, permission: string): boolean {

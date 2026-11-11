@@ -4,6 +4,8 @@
  * mock/service-unconfigured states, never silent fake success.
  */
 import { z } from "zod";
+import { mkdirSync } from "node:fs";
+import { resolve } from "node:path";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -30,10 +32,14 @@ const envSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
-  // Media
-  CLOUDINARY_CLOUD_NAME: z.string().optional(),
-  CLOUDINARY_API_KEY: z.string().optional(),
-  CLOUDINARY_API_SECRET: z.string().optional(),
+  // Media — self-hosted storage on the hosting server's own disk (Hostinger). Files are
+  // written under MEDIA_STORAGE_DIR and served publicly at /uploads/** by the API itself.
+  // MEDIA_STORAGE_DIR: absolute path (or path relative to the API working directory). Point
+  // it OUTSIDE the deployment directory on managed hosts so redeploys never touch uploads.
+  MEDIA_STORAGE_DIR: z.string().optional(),
+  // Absolute origin used to build public asset URLs stored in Firestore (e.g. https://staging.annaadhya.com).
+  // When unset, URLs are derived per-request from X-Forwarded-Proto/-Host headers.
+  MEDIA_PUBLIC_BASE_URL: z.string().url().optional(),
 
   // Storefront cache revalidation (CMS freshness). Optional: when unset, the
   // storefront still picks up content changes via its time-based revalidation.
@@ -52,10 +58,16 @@ export type ApiEnv = z.infer<typeof envSchema> & {
   isProduction: boolean;
   firebaseConfigured: boolean;
   razorpayConfigured: boolean;
-  cloudinaryConfigured: boolean;
+  /** True when the media storage directory exists or can be created (writable disk). */
+  mediaConfigured: boolean;
 };
 
 let cached: ApiEnv | null = null;
+
+/** Root directory that holds self-hosted media, served publicly under /uploads. */
+export function resolveMediaDir(): string {
+  return resolve(process.env.MEDIA_STORAGE_DIR?.trim() || resolve(process.cwd(), "uploads"));
+}
 
 export function loadEnv(): ApiEnv {
   if (cached) return cached;
@@ -69,9 +81,12 @@ export function loadEnv(): ApiEnv {
     env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY,
   );
   const razorpayConfigured = Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
-  const cloudinaryConfigured = Boolean(
-    env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
-  );
+  let mediaConfigured = true;
+  try {
+    mkdirSync(resolveMediaDir(), { recursive: true });
+  } catch {
+    mediaConfigured = false; // read-only filesystem (e.g. serverless) — uploads stay 503
+  }
   const isProduction = env.NODE_ENV === "production";
 
   if (isProduction && env.DATA_PROVIDER === "memory") {
@@ -90,7 +105,7 @@ export function loadEnv(): ApiEnv {
     isProduction,
     firebaseConfigured,
     razorpayConfigured,
-    cloudinaryConfigured,
+    mediaConfigured,
   };
   return cached;
 }

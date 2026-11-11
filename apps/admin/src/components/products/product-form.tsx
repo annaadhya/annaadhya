@@ -124,7 +124,8 @@ interface VariantRow {
 interface ImageRow {
   key: string;
   url: string;
-  cloudinaryPublicId?: string;
+  /** Server-side storage key for self-hosted media (path under the API's media root). */
+  storagePath?: string;
   alt: string;
   width?: number;
   height?: number;
@@ -259,7 +260,7 @@ export function docImagesToRows(doc: ProductWithVariants): ImageRow[] {
   return (doc.images ?? []).map((img, i) => ({
     key: `img${i}`,
     url: img.url,
-    cloudinaryPublicId: img.cloudinaryPublicId,
+    storagePath: img.storagePath,
     alt: img.alt ?? "",
     width: img.width,
     height: img.height,
@@ -488,7 +489,7 @@ export function useProductSubmit() {
         .filter((img) => img.url.trim() !== "")
         .map((img) => ({
           url: img.url.trim(),
-          cloudinaryPublicId: img.cloudinaryPublicId,
+          storagePath: img.storagePath,
           alt: img.alt.trim(),
           width: img.width,
           height: img.height,

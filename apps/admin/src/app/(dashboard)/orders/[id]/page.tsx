@@ -202,7 +202,7 @@ function ItemThumb({ src, name }: { src?: string; name: string }) {
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- historical snapshot URLs may be absolute (Cloudinary) or site-rooted; next/image adds nothing here
+    // eslint-disable-next-line @next/next/no-img-element -- historical snapshot URLs may be absolute (self-hosted/external) or site-rooted; next/image adds nothing here
     <img
       src={src}
       alt={name}

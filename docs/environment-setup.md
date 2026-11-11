@@ -107,20 +107,26 @@ pnpm --filter @annaadhya/seed-demo-data reset-demo --firestore --i-understand-de
 **Verify before claiming it works:** sign in with Google, email and phone on the storefront; check
 `GET /api/v1/health` shows `provider: "firestore"` and `auth: "firebase"`.
 
-## 4. Cloudinary (product media)
+## 4. Media storage (self-hosted on the hosting server's disk)
 
-Create a Cloudinary project and note Cloud name + API key + API secret.
+No third-party service: product/category/CMS imagery is stored on the hosting server's own
+disk (Hostinger plan storage) and served by the API itself at `/uploads/**`.
 
 ```
-CLOUDINARY_CLOUD_NAME=…
-CLOUDINARY_API_KEY=…
-CLOUDINARY_API_SECRET=…   # server-side only, never exposed to browsers
+MEDIA_STORAGE_DIR=/home/<user>/annaadhya-media   # absolute path OUTSIDE the deployment dir
+MEDIA_PUBLIC_BASE_URL=https://staging.annaadhya.com   # optional; derived from request headers when unset
 ```
 
-Flow implemented: admin requests `POST /admin/media/upload-signature` → browser uploads directly
-to Cloudinary with the signed params → `POST /admin/media/register` validates the asset → attach
-the URL to a product via the product editor. Restricted to `annaadhya/*` folders, images ≤ 10 MB,
-jpg/png/webp/avif.
+- `MEDIA_STORAGE_DIR` — where files live. Point it OUTSIDE the deployment directory so
+  redeploys never touch uploaded files. Defaults to `<api working directory>/uploads`.
+- `MEDIA_PUBLIC_BASE_URL` — absolute origin baked into the URLs stored in Firestore.
+  Unset = derived per-upload from `X-Forwarded-Proto`/`X-Forwarded-Host`.
+
+Flow implemented: browser POSTs multipart `POST /admin/media/upload` (media:write) → API writes
+`<MEDIA_STORAGE_DIR>/<folder>/<yyyymm>/<ts>-<rand>-<name>.<ext>` → returns the public URL → attach
+it to a product via the product editor. Images ≤ 10 MB, jpg/jpeg/png/webp/avif, served with
+30-day immutable cache headers. Writability is checked at boot (`media=hostinger-local` in the
+boot report); a read-only filesystem degrades the endpoint to an explicit 503, never fake success.
 
 ## 5. Razorpay (payments)
 
@@ -187,7 +193,8 @@ panel reads the Firebase client config at build time:
 | `ADMIN_SETUP_KEY` | api | one-time owner bootstrap guard |
 | `PAYMENT_PROVIDER` | api | `mock` or `razorpay` |
 | `RAZORPAY_KEY_ID/KEY_SECRET/WEBHOOK_SECRET` | api | gateway credentials |
-| `CLOUDINARY_*` | api | media credentials |
+| `MEDIA_STORAGE_DIR` | api | self-hosted media root (Hostinger disk) |
+| `MEDIA_PUBLIC_BASE_URL` | api | origin used in stored asset URLs (optional) |
 | `CHECKOUT_QUOTE_TTL_MINUTES` | api | quote lifetime (default 15) |
 | `STOCK_RESERVATION_TTL_MINUTES` | api | reservation lifetime (default 30) |
 | `EXPORT_SYNC_ROW_LIMIT` | api | sync export cap (default 20000) |

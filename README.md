@@ -34,7 +34,7 @@ pnpm dev:storefront     # http://localhost:3000
 pnpm dev:admin          # http://localhost:3001
 ```
 
-In development without Firebase/Razorpay/Cloudinary credentials the platform runs in an explicit
+In development without Firebase/Razorpay credentials the platform runs in an explicit
 **mock mode**: data lives in the in-memory provider, authentication uses clearly-marked dev tokens,
 and payments use the mock adapter. Mock mode is hard-refused when `NODE_ENV=production`.
 
@@ -52,5 +52,5 @@ See `docs/` — starting with `docs/architecture.md`, `docs/environment-setup.md
 ## Status
 
 Implemented / configured / tested states are tracked honestly in `docs/launch-checklist.md`.
-Integrations that require real credentials (Firebase, Cloudinary, Razorpay, hosting) are built and
+Integrations that require real credentials (Firebase, Razorpay, hosting) are built and
 guarded, but are **not verified** until a real test passes against configured projects.

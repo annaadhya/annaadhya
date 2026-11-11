@@ -29,7 +29,7 @@ Rules enforced across the platform:
 | categoryId | string | → categories |
 | typeLabel | string | variety/type |
 | status | draft \| published \| archived | only `published` is public |
-| images | ProductImage[] | ordered; url/cloudinaryPublicId/alt |
+| images | ProductImage[] | ordered; url/storagePath/alt |
 | ingredients, netQuantityLabel, storageInstructions, allergenInfo, manufacturerDetails, fssaiLicense | string? | shown only when the business supplies them |
 | bestsellerRank, featuredRank | number? | drive home-page placement |
 | giftItem | boolean | |

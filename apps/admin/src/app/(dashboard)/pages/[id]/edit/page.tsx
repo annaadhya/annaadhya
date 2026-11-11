@@ -494,7 +494,7 @@ const [previewOpen, setPreviewOpen] = useState(true);
                     maxLength={600}
                     disabled={saving}
                     className="font-mono text-xs"
-                    placeholder="https://res.cloudinary.com/…"
+                    placeholder="https://… (or paste a hosted image URL)"
                   />
                   <MediaUploader onUploaded={(media) => setSocialImage(media.url)} disabled={saving}>
                     Upload

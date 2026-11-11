@@ -1,6 +1,7 @@
 /** Inventory, suppliers, purchases, expenses, dashboard, reports, media, team, settings, audit controllers. */
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import {
   ORDER_STATUSES,
   PAYMENT_PROVIDERS,
@@ -12,8 +13,7 @@ import {
   inventoryLedgerQuerySchema,
   inventoryThresholdsSchema,
   lowStockQuerySchema,
-  mediaRegisterSchema,
-  mediaSignatureSchema,
+  mediaUploadSchema,
   purchaseCancelSchema,
   purchaseLedgerQuerySchema,
   purchasePaymentSchema,
@@ -37,8 +37,7 @@ import {
   type InventoryLedgerQueryDto,
   type InventoryThresholdsDto,
   type LowStockQueryDto,
-  type MediaRegisterDto,
-  type MediaSignatureDto,
+  type MediaUploadDto,
   type OrderStatus,
   type PaymentProviderName,
   type PaymentStatus,
@@ -65,7 +64,8 @@ import { PurchasesService, SuppliersService } from "./suppliers/suppliers.servic
 import { ExpensesService } from "./expenses/expenses.service";
 import { DashboardService } from "./dashboard/dashboard.service";
 import { EXPORT_TYPES, ReportsService, type ExportType } from "./reports/reports.service";
-import { MediaService } from "./media/media.service";
+import { MediaService, requestOrigin } from "./media/media.service";
+import { badRequest } from "@annaadhya/data-core";
 import { TeamService } from "./team/team.service";
 import { SettingsService } from "./settings/settings.service";
 import { AuditService } from "./audit/audit.service";
@@ -653,7 +653,22 @@ export class ReportsController {
 
 /* ------------------------------------ media ---------------------------------- */
 
+/** Minimal structural typing for the multipart request (keeps @types/multer out of the tree). */
+interface MediaUploadFile {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+  size: number;
+}
+
+interface MediaUploadRequest {
+  headers: Record<string, unknown>;
+  protocol?: string;
+  hostname?: string;
+}
+
 @ApiTags("media")
+@ApiConsumes("multipart/form-data")
 @Controller("admin/media")
 export class MediaController {
   constructor(
@@ -661,29 +676,50 @@ export class MediaController {
     private readonly audit: AuditService,
   ) {}
 
-  @Post("upload-signature")
+  /**
+   * Multipart upload into self-hosted storage (the hosting server's own disk — Hostinger).
+   * The file is written under MEDIA_STORAGE_DIR, served back at /uploads/**, and the
+   * returned URL is what products/categories/CMS content reference.
+   */
+  @Post("upload")
   @Protected("media:write")
   @RequirePermissions("media:write")
-  async uploadSignature(
-    @Body(new ZodValidationPipe(mediaSignatureSchema)) dto: MediaSignatureDto,
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        file: { type: "string", format: "binary" },
+        folder: { type: "string", default: "annaadhya/products" },
+      },
+      required: ["file"],
+    },
+  })
+  async upload(
+    @UploadedFile() file: MediaUploadFile | undefined,
+    @Body(new ZodValidationPipe(mediaUploadSchema)) dto: MediaUploadDto,
     @CurrentUser() actor: AuthPrincipal,
+    @Req() request: MediaUploadRequest,
   ) {
-    const sig = this.media.uploadSignature(dto.folder);
+    if (!file) {
+      throw badRequest('No file received. Send multipart/form-data with a "file" part.');
+    }
+    const stored = await this.media.saveUpload({
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      folder: dto.folder,
+      requestOrigin: requestOrigin(request.headers, request.protocol, request.hostname),
+    });
     await this.audit.record({
       actor,
-      action: "media.signature_issued",
+      action: "media.uploaded",
       targetType: "media",
-      targetId: dto.folder,
-      summary: `Issued Cloudinary upload signature for ${dto.folder}`,
+      targetId: stored.storagePath,
+      summary: `Uploaded ${file.originalname} (${stored.bytes} bytes) to self-hosted media storage`,
     });
-    return sig;
-  }
-
-  @Post("register")
-  @Protected("media:write")
-  @RequirePermissions("media:write")
-  async register(@Body(new ZodValidationPipe(mediaRegisterSchema)) dto: MediaRegisterDto) {
-    return this.media.validateUploadedAsset({ publicId: dto.publicId, url: dto.url, folder: "annaadhya" });
+    return stored;
   }
 }
 

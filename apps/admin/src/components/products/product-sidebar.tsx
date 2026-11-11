@@ -359,7 +359,7 @@ export function StorefrontPreviewCard({
       <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
         <div className="relative h-44 w-full overflow-hidden bg-surface-container">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- Cloudinary/remote preview, plain img keeps the admin bundle lean
+            // eslint-disable-next-line @next/next/no-img-element -- remote/self-hosted preview, plain img keeps the admin bundle lean
             <img src={imageUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <span aria-hidden className="flex h-full w-full items-center justify-center font-heritage-display text-3xl font-semibold text-primary/40">

@@ -11,8 +11,9 @@ const skuSchema = z
 
 /* ------------------------------------ Products ---------------------------------- */
 
-/** Absolute https(s) URLs (Cloudinary) and site-rooted paths (/demo-images/…) are both real,
- *  supported image references — the demo catalogue ships with the latter. */
+/** Absolute https(s) URLs (self-hosted media or any external host) and site-rooted paths
+ *  (/demo-images/…) are both real, supported image references — the demo catalogue ships
+ *  with the latter. */
 const imageUrlSchema = z
   .string()
   .trim()
@@ -24,7 +25,8 @@ const imageUrlSchema = z
 
 export const productImageSchema = z.object({
   url: imageUrlSchema,
-  cloudinaryPublicId: z.string().max(200).optional(),
+  /** Server-side storage key for self-hosted media (path under the media root). */
+  storagePath: z.string().max(300).optional(),
   alt: z.string().trim().max(160).default(""),
   width: z.number().int().positive().max(20000).optional(),
   height: z.number().int().positive().max(20000).optional(),
@@ -596,23 +598,15 @@ export type SettingsUpdateDto = z.infer<typeof settingsUpdateSchema>;
 
 /* ------------------------------------- Media ------------------------------------ */
 
-export const mediaSignatureSchema = z.object({
+/** Multipart upload target folder. Text field accompanying the file in the form. */
+export const mediaUploadSchema = z.object({
   folder: z
     .string()
     .trim()
     .regex(/^[a-zA-Z0-9\-_/]{1,80}$/, "Folder must be a simple path segment")
     .default("annaadhya/products"),
 });
-export type MediaSignatureDto = z.infer<typeof mediaSignatureSchema>;
-
-export const mediaRegisterSchema = z.object({
-  publicId: z.string().trim().min(1).max(200),
-  url: z.string().url().max(600),
-  width: z.number().int().positive().max(20000).optional(),
-  height: z.number().int().positive().max(20000).optional(),
-  bytes: z.number().int().positive().max(20 * 1024 * 1024).optional(),
-});
-export type MediaRegisterDto = z.infer<typeof mediaRegisterSchema>;
+export type MediaUploadDto = z.infer<typeof mediaUploadSchema>;
 
 /* --------------------------------- Customers directory -------------------------------- */
 

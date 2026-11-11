@@ -5,31 +5,27 @@
  *  - Tile 0 is the Primary Hero (larger tile, gold badge); images[0] is what the
  *    storefront renders as the product's main image, so "Set as Primary" moves a
  *    tile to the front of the ordered list.
- *  - Uploads use the project's real Cloudinary signed-direct-upload flow:
- *    POST /admin/media/upload-signature → browser uploads straight to
- *    api.cloudinary.com → POST /admin/media/register to confirm provenance.
- *    The API secret never reaches the client; the request is refused with 503
- *    when Cloudinary env vars are not configured on the server.
- *  - When uploads are unavailable (no media:write permission / Cloudinary not
+ *  - Uploads use the self-hosted media flow (the shop's own Hostinger disk):
+ *    POST multipart /admin/media/upload → the API stores the file under its media
+ *    root and serves it back at /uploads/**; no third-party service involved.
+ *    The request is refused with 503 when media storage is unavailable on the server.
+ *  - When uploads are unavailable (no media:write permission / storage not
  *    configured) the grid falls back to the ordered URL+alt rows that existed
  *    before — honest UI, no fake progress.
  *  - Newly picked files preview via object URLs that are revoked once the real
- *    Cloudinary URL (or a failure) replaces them.
+ *    hosted URL (or a failure) replaces them.
  */
 import { useEffect, useRef, useState } from "react";
-import { ApiError, apiPost, can } from "@/lib/api";
+import { ApiError, can, uploadFile } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { ImageRow } from "./product-form";
 
-interface UploadSignature {
-  cloudName: string;
-  apiKey: string;
-  timestamp: number;
-  signature: string;
-  folder: string;
-  eager: string;
-  uploadUrl: string;
-  constraints: { maxFileSizeMb: number; allowedFormats: string[] };
+/** Matches the API's StoredMedia response (apps/api …/media.service.ts). */
+interface StoredMedia {
+  url: string;
+  storagePath: string;
+  bytes: number;
+  mimeType: string;
 }
 
 interface UploadJob {
@@ -62,7 +58,7 @@ export function MediaGrid({
   disabled?: boolean;
 }) {
   const { principal, mode } = useAuth();
-  const canUpload = Boolean(principal && can(principal, "media:write")) && mode?.cloudinaryConfigured === true;
+  const canUpload = Boolean(principal && can(principal, "media:write")) && mode?.mediaConfigured === true;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [jobs, setJobs] = useState<UploadJob[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -114,84 +110,36 @@ export function MediaGrid({
   }
 
   async function uploadOne(file: File, jobKey: string): Promise<void> {
-    const sig = await apiPost<UploadSignature>("/admin/media/upload-signature", { folder: "annaadhya/products" });
-
-    const constraints = sig.constraints ?? { maxFileSizeMb: 10, allowedFormats: ["jpg", "jpeg", "png", "webp", "avif"] };
+    // Client-side mirrors of the server's enforced constraints.
+    const maxFileSizeMb = 10;
+    const allowedFormats = ["jpg", "jpeg", "png", "webp", "avif"];
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-    if (file.size > constraints.maxFileSizeMb * 1024 * 1024) {
-      throw new ApiError(`${file.name} is larger than ${constraints.maxFileSizeMb}MB.`, "bad_request", 0);
+    if (file.size > maxFileSizeMb * 1024 * 1024) {
+      throw new ApiError(`${file.name} is larger than ${maxFileSizeMb}MB.`, "bad_request", 0);
     }
-    if (constraints.allowedFormats.length > 0 && !constraints.allowedFormats.includes(ext)) {
-      throw new ApiError(`${file.name}: supported formats are ${constraints.allowedFormats.join(", ")}.`, "bad_request", 0);
+    if (!allowedFormats.includes(ext)) {
+      throw new ApiError(`${file.name}: supported formats are ${allowedFormats.join(", ")}.`, "bad_request", 0);
     }
 
-    const cloudinaryUrl = await new Promise<{ secure_url: string; public_id: string; width: number; height: number; bytes: number }>(
-      (resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", sig.uploadUrl);
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const pct = Math.round((e.loaded / e.total) * 90); // keep 10% for register
-            setJobs((prev) => prev.map((j) => (j.key === jobKey ? { ...j, progress: pct } : j)));
-          }
-        });
-        xhr.addEventListener("load", () => {
-          try {
-            const body = JSON.parse(xhr.responseText) as { secure_url?: string; public_id?: string; width?: number; height?: number; bytes?: number; error?: { message?: string } };
-            if (xhr.status >= 200 && xhr.status < 300 && body.secure_url && body.public_id) {
-              resolve({
-                secure_url: body.secure_url,
-                public_id: body.public_id,
-                width: body.width ?? 0,
-                height: body.height ?? 0,
-                bytes: body.bytes ?? file.size,
-              });
-            } else {
-              reject(new ApiError(body.error?.message ?? `Cloudinary upload failed (${xhr.status}).`, "internal", xhr.status));
-            }
-          } catch {
-            reject(new ApiError(`Cloudinary upload failed (${xhr.status}).`, "internal", xhr.status));
-          }
-        });
-        xhr.addEventListener("error", () => reject(new ApiError("Network error while uploading to Cloudinary.", "network_error", 0)));
-
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("api_key", sig.apiKey);
-        fd.append("timestamp", String(sig.timestamp));
-        fd.append("signature", sig.signature);
-        fd.append("eager", sig.eager);
-        fd.append("folder", sig.folder);
-        xhr.send(fd);
-      },
+    const stored = await uploadFile<StoredMedia>(
+      "/admin/media/upload",
+      file,
+      "annaadhya/products",
+      (pct) => setJobs((prev) => prev.map((j) => (j.key === jobKey ? { ...j, progress: pct } : j))),
     );
 
-    // Confirm provenance with the API before the asset may be referenced.
-    await apiPost("/admin/media/register", {
-      publicId: cloudinaryUrl.public_id,
-      url: cloudinaryUrl.secure_url,
-      width: cloudinaryUrl.width || undefined,
-      height: cloudinaryUrl.height || undefined,
-      bytes: cloudinaryUrl.bytes || undefined,
-    });
-
-    return new Promise((resolve) => {
-      setJobs((prev) => prev.map((j) => (j.key === jobKey ? { ...j, progress: 100 } : j)));
-      setRows((prev) => {
-        if (prev.length >= MAX_IMAGES) return prev;
-        return [
-          ...prev,
-          {
-            key: jobKey,
-            url: cloudinaryUrl.secure_url,
-            cloudinaryPublicId: cloudinaryUrl.public_id,
-            alt: altFromFileName(file.name),
-            width: cloudinaryUrl.width || undefined,
-            height: cloudinaryUrl.height || undefined,
-          },
-        ];
-      });
-      resolve();
+    setJobs((prev) => prev.map((j) => (j.key === jobKey ? { ...j, progress: 100 } : j)));
+    setRows((prev) => {
+      if (prev.length >= MAX_IMAGES) return prev;
+      return [
+        ...prev,
+        {
+          key: jobKey,
+          url: stored.url,
+          storagePath: stored.storagePath,
+          alt: altFromFileName(file.name),
+        },
+      ];
     });
   }
 
@@ -260,7 +208,7 @@ export function MediaGrid({
                 isPrimary ? "col-span-2 row-span-2" : "h-36"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- Cloudinary/remote thumbs, plain img keeps the admin bundle lean */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote/self-hosted thumbs, plain img keeps the admin bundle lean */}
               <img
                 src={img.url}
                 alt={img.alt}
@@ -385,14 +333,14 @@ export function MediaGrid({
         ) : null}
         {canUpload && !disabled ? (
           <p className="text-xs text-on-surface-variant">
-            {rows.length + jobs.length} of {MAX_IMAGES} uploaded. Uploads go straight to the shop&apos;s Cloudinary CDN.
+            {rows.length + jobs.length} of {MAX_IMAGES} uploaded. Uploads go to the shop&apos;s own storage (Hostinger disk).
           </p>
         ) : (
           <p className="text-xs text-on-surface-variant">
             {disabled
               ? "You have read-only access to this product's images."
-              : mode?.cloudinaryConfigured === false
-                ? "Direct uploads activate once Cloudinary is connected on the server — paste image URLs below for now."
+              : mode?.mediaConfigured === false
+                ? "Direct uploads activate once media storage is available on the server — paste image URLs below for now."
                 : "Paste hosted image URLs below (first image is the storefront's primary photo)."}
           </p>
         )}
@@ -403,7 +351,7 @@ export function MediaGrid({
               type="url"
               value={urlDraft}
               onChange={(e) => setUrlDraft(e.target.value)}
-              placeholder="https://res.cloudinary.com/…"
+              placeholder="https://… (or /demo-images/…)"
               aria-label="Image URL"
               className="h-9 flex-1 rounded-lg bg-surface-container-lowest px-3 text-body-sm text-on-surface shadow-[0_0_0_1px_rgba(217,193,194,0.6)] placeholder:text-on-surface-variant/40 focus:outline-none focus:shadow-[0_0_0_2px_#541620]"
             />

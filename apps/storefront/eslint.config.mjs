@@ -11,9 +11,9 @@ export default [
   {
     rules: {
       "react-hooks/exhaustive-deps": "warn",
-      // Product images are SVG demo assets today and Cloudinary URLs later.
-      // next/image blocks SVG optimization (dangerouslyAllowSVG) and needs
-      // remotePatterns for Cloudinary — revisit when real photos ship.
+      // Product images are SVG demo assets today and self-hosted photo URLs later.
+      // next/image blocks SVG optimization (dangerouslyAllowSVG); the storefront
+      // renders direct, already-sized sources — revisit if real optimization ships.
       "@next/next/no-img-element": "off",
     },
   },

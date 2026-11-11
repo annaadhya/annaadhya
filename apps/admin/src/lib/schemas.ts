@@ -11,8 +11,9 @@ const skuSchema = z
   .trim()
   .regex(/^[A-Z0-9][A-Z0-9\-_.]{2,40}$/, "SKU must be 3-41 chars: A-Z, 0-9, dashes");
 
-/** Absolute https(s) URLs (Cloudinary) and site-rooted paths (/demo-images/…) are both real,
- *  supported image references — the demo catalogue ships with the latter. */
+/** Absolute https(s) URLs (self-hosted media or any external host) and site-rooted paths
+ *  (/demo-images/…) are both real, supported image references — the demo catalogue ships
+ *  with the latter. */
 const imageUrlSchema = z
   .string()
   .trim()
@@ -24,7 +25,8 @@ const imageUrlSchema = z
 
 export const productImageSchema = z.object({
   url: imageUrlSchema,
-  cloudinaryPublicId: z.string().max(200).optional(),
+  /** Server-side storage key for self-hosted media (path under the API's media root). */
+  storagePath: z.string().max(300).optional(),
   alt: z.string().trim().max(160),
   width: z.number().int().positive().max(20000).optional(),
   height: z.number().int().positive().max(20000).optional(),

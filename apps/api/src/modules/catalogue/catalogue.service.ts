@@ -339,7 +339,7 @@ export class CatalogueService {
       // zod-inferred props appear optional). Values are already validated.
       images: dto.images.map((im) => ({
         url: im.url ?? "",
-        cloudinaryPublicId: im.cloudinaryPublicId,
+        storagePath: im.storagePath,
         alt: im.alt ?? "",
         width: im.width,
         height: im.height,

@@ -109,7 +109,7 @@ function ProductThumb({ product }: { product: ProductWithVariants }) {
   const src = product.images[0]?.url;
   if (src && !failed) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary thumbs, plain img keeps the admin bundle lean
+      // eslint-disable-next-line @next/next/no-img-element -- remote/self-hosted thumbs, plain img keeps the admin bundle lean
       <img
         src={src}
         alt=""

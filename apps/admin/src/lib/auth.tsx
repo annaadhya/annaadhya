@@ -32,7 +32,9 @@ interface PlatformMode {
   authentication?: string;
   payments?: string;
   razorpayConfigured?: boolean;
-  cloudinaryConfigured?: boolean;
+  /** Media lives on the hosting server's own disk (Hostinger) — flag reports writability. */
+  mediaStorage?: string;
+  mediaConfigured?: boolean;
   sandbox?: boolean;
 }
 
@@ -109,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (stored && getToken()) {
             setPrincipal(stored);
             // Dev-token sessions have no SDK session to re-verify against, so the
-            // platform mode descriptor (e.g. cloudinaryConfigured) must be re-fetched
+            // platform mode descriptor (e.g. mediaConfigured) must be re-fetched
             // after every full page navigation — otherwise server-config surfaces go stale.
             void refreshMode();
           }

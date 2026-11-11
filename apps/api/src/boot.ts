@@ -22,7 +22,7 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v14-publish-hygiene";
+const DEPLOY_BUILD = "v15-hostinger-media";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
 
 /**
@@ -94,6 +94,8 @@ const REPORTED_ENV_KEYS = [
   "RAZORPAY_KEY_ID",
   "RAZORPAY_KEY_SECRET",
   "CORS_ORIGINS",
+  "MEDIA_STORAGE_DIR",
+  "MEDIA_PUBLIC_BASE_URL",
 ] as const;
 
 function writeBootReport(status: string, extra: string[] = []): void {
@@ -228,7 +230,7 @@ async function boot(): Promise<void> {
 
   const NestFactory = await step("import @nestjs/core", async () => (await import("@nestjs/core")).NestFactory);
   const { AppModule } = await step("import AppModule (full DI graph)", () => import("./app.module"));
-  const { loadEnv } = await step("import config/env", () => import("./config/env"));
+  const { loadEnv, resolveMediaDir } = await step("import config/env", () => import("./config/env"));
   const { applySeed, InMemoryDataClient } = await step("import @annaadhya/data-core", () =>
     import("@annaadhya/data-core"),
   );
@@ -254,6 +256,27 @@ async function boot(): Promise<void> {
       origin: env.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean),
       credentials: true,
     });
+
+    // Self-hosted media (Hostinger disk): serve every stored asset publicly under
+    // /uploads/** with long-lived cache headers. Registered before app.init() so the
+    // static middleware precedes the Nest router; a missing/unwritable directory only
+    // skips the mount (uploads endpoint then answers 503, honest as always).
+    try {
+      const mediaDir = resolveMediaDir();
+      fs.mkdirSync(mediaDir, { recursive: true });
+      (app as unknown as {
+        useStaticAssets(dir: string, options: Record<string, unknown>): void;
+      }).useStaticAssets(mediaDir, {
+        prefix: "/uploads",
+        index: false,
+        dotfiles: "ignore",
+        maxAge: "30d",
+        immutable: true,
+      });
+      bootLog.push(`ok: media static /uploads <- ${mediaDir}`);
+    } catch (err) {
+      bootLog.push(`media static /uploads DISABLED: ${err instanceof Error ? err.message : String(err)}`);
+    }
 
     const expressApp = app.getHttpAdapter().getInstance() as {
       get(
@@ -373,7 +396,7 @@ async function boot(): Promise<void> {
 
   console.info(`Annaadhya API serving on :${port} (prefix /api/v1, docs at /api/docs)`);
   console.info(
-    `Mode: provider=${env.DATA_PROVIDER} auth=${env.firebaseConfigured ? "firebase" : "mock-dev-tokens"} payments=${env.razorpayConfigured ? "razorpay" : "mock"}${env.isProduction ? " PRODUCTION" : " (sandbox)"}`,
+    `Mode: provider=${env.DATA_PROVIDER} auth=${env.firebaseConfigured ? "firebase" : "mock-dev-tokens"} payments=${env.razorpayConfigured ? "razorpay" : "mock"} media=${env.mediaConfigured ? "hostinger-local" : "unavailable"}${env.isProduction ? " PRODUCTION" : " (sandbox)"}`,
   );
 
   writeBootReport("ok");

@@ -618,7 +618,7 @@ function BlockCard({
       return (
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <MiniField label="Image URL" hint="Absolute https://… URL (Cloudinary) or a site-rooted /… path.">
+            <MiniField label="Image URL" hint="Absolute https://… URL (self-hosted media) or a site-rooted /… path.">
               <Input
                 className="h-9 font-mono text-xs"
                 value={block.src}

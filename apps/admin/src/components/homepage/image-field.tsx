@@ -2,7 +2,7 @@
 /**
  * ImageField — URL input + MediaUploader pair used by every homepage image slot.
  * The URL stays authoritative (paste any approved path/URL); uploading fills the
- * same input with the delivered Cloudinary URL. A live thumbnail previews the
+ * same input with the self-hosted image URL. A live thumbnail previews the
  * current value so broken URLs are obvious before saving.
  */
 import { Field, Input } from "@/components/ui/form";

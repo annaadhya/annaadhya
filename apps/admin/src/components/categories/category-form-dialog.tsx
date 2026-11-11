@@ -159,7 +159,7 @@ export function CategoryFormDialog({ open, onClose, category, onSaved }: Categor
     }
     const trimmedHero = heroImage.trim();
     if (trimmedHero && !/^https?:\/\/.+/i.test(trimmedHero)) {
-      return void setError("Hero image must be a full URL starting with https:// (upload one or paste the Cloudinary link).");
+      return void setError("Hero image must be a full URL starting with https:// (upload one or paste the hosted link).");
     }
 
     const payload: CategoryUpsertPayload = {
@@ -337,7 +337,7 @@ export function CategoryFormDialog({ open, onClose, category, onSaved }: Categor
                         onChange={(e) => setHeroImage(e.target.value)}
                         maxLength={600}
                         className="font-mono text-xs"
-                        placeholder="https://res.cloudinary.com/…"
+                        placeholder="https://… (or paste a hosted image URL)"
                       />
                       <div className="flex items-center gap-2">
                         <MediaUploader onUploaded={(media) => setHeroImage(media.url)} disabled={saving}>

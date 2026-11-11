@@ -62,7 +62,7 @@ export function ProductCard({ product }: { product: ProductWithVariantsShape }) 
         className="absolute inset-0 z-10 rounded-lg"
       />
       <div className="relative aspect-square w-full overflow-hidden rounded-sm bg-surface-container">
-        {/* Demo SVG placeholders are replaceable; Cloudinary photography drops into the same field. */}
+        {/* Demo SVG placeholders are replaceable; self-hosted photography drops into the same field. */}
         <img
           src={image}
           alt={product.images[0]?.alt || product.name}

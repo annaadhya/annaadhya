@@ -9,7 +9,7 @@ Nothing should be marked Verified/Live without evidence. Items marked ⚠️ nee
 - [ ] Obtain supplier cost/quote documentation for every SKU (Supplier Tracker sheet)
 - [ ] Approve retail prices per pack (accounting for cost, freight, packaging, fulfilment, taxes,
       payment fees, returns, advertising) → fill "Approved Customer Price" column and re-import
-- [ ] Upload real product photography (Cloudinary) and remove SVG placeholders
+- [ ] Upload real product photography (admin media upload → Hostinger disk) and remove SVG placeholders
 - [ ] Provide legal entity name, registered address policy, GSTIN (if registered) ⚠️
 - [ ] Provide FSSAI licence number (mandatory for food e-commerce) ⚠️
 - [ ] Decide COD operations (enable only if operationally ready) ⚠️
@@ -29,7 +29,7 @@ Nothing should be marked Verified/Live without evidence. Items marked ⚠️ nee
 - [ ] Firebase production project: Auth providers on (Google, Email, Phone; SMS cost reviewed)
 - [ ] Firestore production DB + `firestore.rules` + `firestore.indexes.json` deployed
 - [ ] `DATA_PROVIDER=firestore` verified via `/api/v1/health`
-- [ ] Cloudinary configured; upload signature flow tested end-to-end
+- [ ] `MEDIA_STORAGE_DIR` set to a writable directory outside the deployment dir; upload flow tested end-to-end
 - [ ] Razorpay live keys created after KYC; webhook registered on the production API URL
 - [ ] One live ₹1 transaction + refund completed and reconciled
 - [ ] `settings.payments.sandboxMode` flipped to false by the owner
@@ -62,7 +62,7 @@ Nothing should be marked Verified/Live without evidence. Items marked ⚠️ nee
 | Storefront + admin + API | Implemented; production builds pass; live smoke test green |
 | Firebase Auth (all 3 methods) | Implemented; **not verified** — needs configured project |
 | Firestore | Implemented; **not verified** — needs configured project |
-| Cloudinary | Implemented; **not verified** — needs credentials |
+| Media storage (self-hosted) | Implemented; upload + /uploads delivery live on Hostinger |
 | Razorpay | Implemented; **not verified** — needs test-mode keys + webhook round-trip |
 | Mock payments / dev auth | Implemented and **tested** (unit + smoke) |
 | Playwright browser suite | Not yet written (documented follow-up) |

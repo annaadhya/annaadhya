@@ -1,7 +1,7 @@
 /**
  * Generates brand-styled SVG demo imagery into apps/storefront/public/demo-images.
  * Output is committed so the storefront has imagery without external services; every
- * product's image URL can later be swapped for Cloudinary photography via the admin panel.
+ * product's image URL can later be swapped for self-hosted photography via the admin panel.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";

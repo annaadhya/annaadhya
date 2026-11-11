@@ -23,10 +23,10 @@ the reasoning behind its important decisions.
         ▼               ▼               ▼
 ┌──────────────┐ ┌─────────────┐ ┌──────────────┐
 │   Data layer │ │  Payments   │ │    Media     │
-│ DataClient → │ │ mock /      │ │ Cloudinary   │
-│  Firestore   │ │ Razorpay    │ │ signed upload│
-│  (admin SDK) │ │ adapters    │ │ (no secret   │
-│  or in-mem   │ │             │ │  in browser) │
+│ DataClient → │ │ mock /      │ │ self-hosted  │
+│  Firestore   │ │ Razorpay    │ │ disk storage │
+│  (admin SDK) │ │ adapters    │ │ /uploads/**  │
+│  or in-mem   │ │             │ │ (Hostinger)  │
 └──────────────┘ └─────────────┘ └──────────────┘
 ```
 
@@ -110,8 +110,9 @@ but is registered only when credentials exist, and stays **sandboxed** (`setting
 
 ### 8. No secrets in the browser
 
-Cloudinary uploads use short-lived signed params issued by the API; the API secret never leaves the
-server. Firebase client SDK holds only public config. Payment secrets are server-only. The admin
+Media uploads post straight to the API with the admin's own bearer token — there is no third-party
+media service and no additional secret. Firebase client SDK holds only public config. Payment
+secrets are server-only. The admin
 app stores its session token in `sessionStorage` (see Known limitations).
 
 ## Request flows

@@ -125,7 +125,8 @@ export interface CategoryDoc extends BaseDoc {
 
 export interface ProductImage {
   url: string;
-  cloudinaryPublicId?: string;
+  /** Server-side storage key for self-hosted media (path under the API's media root). */
+  storagePath?: string;
   alt: string;
   width?: number;
   height?: number;

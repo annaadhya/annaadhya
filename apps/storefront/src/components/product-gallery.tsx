@@ -2,7 +2,7 @@
 /** Product gallery in the approved Stitch composition: large 4:3 showcase with hover
  *  zoom, badge chip, and a thumbnail strip that appears only when a product genuinely
  *  has multiple images (demo catalogue ships one image per product — the strip is
- *  Cloudinary-ready and stays hidden until then). Includes a click-to-enlarge overlay.
+ *  multi-image-ready and stays hidden until then). Includes a click-to-enlarge overlay.
  *  Existing product images and their mapping are used as-is, never substituted. */
 import { useEffect, useState } from "react";
 import type { ProductImage } from "@/lib/types";
