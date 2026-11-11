@@ -4,6 +4,10 @@
  * Money fields are typed in rupees and converted with Math.round(rupees*100) once, at save.
  * The sandboxMode toggle carries an explicit warning — it must stay on until the owner
  * explicitly approves launch.
+ *
+ * Homepage copy + homepage feature flags deliberately do NOT live here (moved to the
+ * Homepage console 2026-11-11, one home per setting): this page's save patch omits the
+ * storefront group entirely and the API deep-merges, so those values never move.
  */
 import { useEffect, useState } from "react";
 import { ApiError, apiGet, apiPost, can } from "@/lib/api";
@@ -33,6 +37,7 @@ interface FormState {
   announcementEnabled: boolean;
   announcementMessage: string;
   announcementHref: string;
+  announcementTagline: string;
 
   shippingMode: SettingsDoc["shipping"]["mode"];
   flatRate: string; // rupees
@@ -47,15 +52,6 @@ interface FormState {
   upiNote: string;
 
   includeDemo: boolean;
-
-  heroHeadline: string;
-  heroHeadlineAccent: string;
-  heroSubcopy: string;
-  heroImage: string;
-  heroCtaHref: string;
-  heroCtaLabel: string;
-  newsletterEnabled: boolean;
-  giftCollectionEnabled: boolean;
 }
 
 function docToForm(doc: SettingsDoc): FormState {
@@ -73,6 +69,7 @@ function docToForm(doc: SettingsDoc): FormState {
     announcementEnabled: doc.store.announcement?.enabled ?? false,
     announcementMessage: doc.store.announcement?.message ?? "",
     announcementHref: doc.store.announcement?.href ?? "",
+    announcementTagline: doc.store.announcement?.tagline ?? "",
 
     shippingMode: doc.shipping.mode,
     flatRate: paiseToRupeeInput(doc.shipping.flatRatePaise ?? 0),
@@ -87,15 +84,6 @@ function docToForm(doc: SettingsDoc): FormState {
     upiNote: doc.payments.upiNote ?? "",
 
     includeDemo: doc.reporting.includeDemoDataByDefault,
-
-    heroHeadline: doc.storefront.heroHeadline ?? "",
-    heroHeadlineAccent: doc.storefront.heroHeadlineAccent ?? "",
-    heroSubcopy: doc.storefront.heroSubcopy ?? "",
-    heroImage: doc.storefront.heroImage ?? "",
-    heroCtaHref: doc.storefront.heroCtaHref ?? "",
-    heroCtaLabel: doc.storefront.heroCtaLabel ?? "",
-    newsletterEnabled: doc.storefront.newsletterEnabled,
-    giftCollectionEnabled: doc.storefront.giftCollectionEnabled,
   };
 }
 
@@ -175,6 +163,7 @@ export default function SettingsPage() {
           enabled: form.announcementEnabled,
           message: form.announcementMessage.trim(),
           href: form.announcementHref.trim() || undefined,
+          tagline: form.announcementTagline.trim() || undefined,
         },
       },
       shipping: {
@@ -193,16 +182,8 @@ export default function SettingsPage() {
       reporting: {
         includeDemoDataByDefault: form.includeDemo,
       },
-      storefront: {
-        heroHeadline: form.heroHeadline.trim(),
-        heroHeadlineAccent: form.heroHeadlineAccent.trim(),
-        heroSubcopy: form.heroSubcopy.trim(),
-        heroImage: form.heroImage.trim() || undefined,
-        heroCtaHref: form.heroCtaHref.trim(),
-        heroCtaLabel: form.heroCtaLabel.trim() || undefined,
-        newsletterEnabled: form.newsletterEnabled,
-        giftCollectionEnabled: form.giftCollectionEnabled,
-      },
+      // No `storefront` group here by design: hero copy + homepage flags are owned
+      // by the Homepage console. Omitting the group is safe — the API deep-merges.
     };
 
     setSaving(true);
@@ -287,27 +268,54 @@ export default function SettingsPage() {
             <Field label="WhatsApp URL">
               <Input value={form.whatsapp} onChange={(e) => update("whatsapp", e.target.value)} maxLength={200} disabled={!canWrite} />
             </Field>
-            <div className="space-y-2">
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Announcement bar"
+            subtitle="The maroon strip above the navbar on every page — left message, center tagline"
+          />
+          <CardBody className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="md:col-span-2 space-y-4">
               <Checkbox
-                label="Announcement bar enabled"
+                label="Custom announcement enabled"
+                description="On: the strip's left segment shows your message (linked when a link is set). Off: it shows the automatic free-shipping claim from the Shipping card below — always in sync with what checkout actually charges."
                 checked={form.announcementEnabled}
                 onChange={(e) => update("announcementEnabled", e.target.checked)}
                 disabled={!canWrite}
               />
-              <Input
-                value={form.announcementMessage}
-                onChange={(e) => update("announcementMessage", e.target.value)}
-                maxLength={160}
-                placeholder="Announcement message"
-                disabled={!canWrite || !form.announcementEnabled}
-              />
-              <Input
-                value={form.announcementHref}
-                onChange={(e) => update("announcementHref", e.target.value)}
-                maxLength={200}
-                placeholder="Optional link"
-                disabled={!canWrite || !form.announcementEnabled}
-              />
+              <Field label="Custom message (left segment)" hint="The design uppercases this line — write it in normal case">
+                <Input
+                  value={form.announcementMessage}
+                  onChange={(e) => update("announcementMessage", e.target.value)}
+                  maxLength={160}
+                  placeholder="e.g. Festive hampers are here — order early"
+                  disabled={!canWrite || !form.announcementEnabled}
+                />
+              </Field>
+              <Field label="Optional link" hint="Where the message clicks through to — e.g. /shop or /contact">
+                <Input
+                  value={form.announcementHref}
+                  onChange={(e) => update("announcementHref", e.target.value)}
+                  maxLength={200}
+                  placeholder="/shop"
+                  disabled={!canWrite || !form.announcementEnabled}
+                />
+              </Field>
+              <Field
+                label="Tagline (center segment)"
+                className="md:col-span-2"
+                hint="Blank keeps the approved design tagline — Thoughtfully Sourced Pantry Essentials | Rooted in Indian Heritage"
+              >
+                <Input
+                  value={form.announcementTagline}
+                  onChange={(e) => update("announcementTagline", e.target.value)}
+                  maxLength={120}
+                  placeholder="Your brand tagline for the top strip"
+                  disabled={!canWrite}
+                />
+              </Field>
             </div>
           </CardBody>
         </Card>
@@ -435,48 +443,7 @@ export default function SettingsPage() {
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader title="Storefront" subtitle="Hero copy and feature flags — leave a hero field blank to keep the approved design default" />
-          <CardBody className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field label="Hero headline — part 1 (dark)" hint="First line, dark serif. Blank = skipped">
-              <Input value={form.heroHeadline} onChange={(e) => update("heroHeadline", e.target.value)} maxLength={120} disabled={!canWrite} />
-            </Field>
-            <Field
-              label="Hero headline — part 2 (wine-red italic)"
-              hint="Second line in the accent style. Blank = skipped; both blank = the approved design headline"
-            >
-              <Input value={form.heroHeadlineAccent} onChange={(e) => update("heroHeadlineAccent", e.target.value)} maxLength={120} disabled={!canWrite} />
-            </Field>
-            <Field label="Hero CTA link" hint="Blank = /shop">
-              <Input value={form.heroCtaHref} onChange={(e) => update("heroCtaHref", e.target.value)} maxLength={200} disabled={!canWrite} />
-            </Field>
-            <Field label="Hero CTA label" hint="Blank = “Shop All Products”">
-              <Input value={form.heroCtaLabel} onChange={(e) => update("heroCtaLabel", e.target.value)} maxLength={40} disabled={!canWrite} />
-            </Field>
-            <Field label="Hero image URL" hint="Self-hosted path (/images/…) or full URL. Blank = the approved hero photo">
-              <Input value={form.heroImage} onChange={(e) => update("heroImage", e.target.value)} maxLength={600} disabled={!canWrite} />
-            </Field>
-            <Field label="Hero subcopy" className="md:col-span-2" hint="Blank = the approved design subcopy shows">
-              <Textarea value={form.heroSubcopy} onChange={(e) => update("heroSubcopy", e.target.value)} rows={2} maxLength={240} disabled={!canWrite} />
-            </Field>
-            <div className="space-y-3">
-              <Checkbox
-                label="Newsletter enabled"
-                description="Only when a compliant capture workflow exists"
-                checked={form.newsletterEnabled}
-                onChange={(e) => update("newsletterEnabled", e.target.checked)}
-                disabled={!canWrite}
-              />
-              <Checkbox
-                label="Gift collection enabled"
-                checked={form.giftCollectionEnabled}
-                onChange={(e) => update("giftCollectionEnabled", e.target.checked)}
-                disabled={!canWrite}
-              />
-            </div>
-          </CardBody>
-        </Card>
-
+        {/* Homepage copy + homepage flags live in Admin → Homepage (single home per setting). */}
         {canWrite ? (
           <div className="flex justify-end">
             <Button type="submit" loading={saving}>

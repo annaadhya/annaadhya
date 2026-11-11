@@ -16,8 +16,9 @@
  * Needs settings:read to view, settings:write to save; without read access the
  * card degrades to an honest explanation instead of fake fields.
  *
- * Newsletter + gift-collection flags are NOT duplicated here — they stay in
- * Admin → Settings → Storefront (the Gifting card only mentions the flag).
+ * Feature flags (newsletter capture + gift-collection master switch) live here
+ * too (moved 2026-11-11): the Homepage console is the single home of homepage
+ * settings — the Settings console no longer carries any homepage card.
  */
 import { useEffect, useMemo, useState } from "react";
 import { ApiError, apiGet, apiPost, can } from "@/lib/api";
@@ -217,15 +218,23 @@ export default function HomepagePage() {
   }, [homepageQuery.data]);
 
   useEffect(() => {
-    if (settingsQuery.data) setHeroForm(settingsToHeroForm(settingsQuery.data));
+    if (settingsQuery.data) {
+      setHeroForm(settingsToHeroForm(settingsQuery.data));
+      setFlags({
+        newsletter: settingsQuery.data.storefront.newsletterEnabled,
+        gift: settingsQuery.data.storefront.giftCollectionEnabled,
+      });
+    }
   }, [settingsQuery.data]);
 
-  const [savingSection, setSavingSection] = useState<"hero" | "collections" | "trust" | "story" | "gifting" | null>(null);
+  const [savingSection, setSavingSection] = useState<"hero" | "flags" | "collections" | "trust" | "story" | "gifting" | null>(null);
   const [heroError, setHeroError] = useState<string | null>(null);
   const [collectionsError, setCollectionsError] = useState<string | null>(null);
   const [trustError, setTrustError] = useState<string | null>(null);
   const [storyError, setStoryError] = useState<string | null>(null);
   const [giftingError, setGiftingError] = useState<string | null>(null);
+  const [flags, setFlags] = useState<{ newsletter: boolean; gift: boolean } | null>(null);
+  const [flagsError, setFlagsError] = useState<string | null>(null);
 
   function update<K extends keyof HomepageFormState>(key: K, value: HomepageFormState[K]) {
     setForm((f) => (f ? { ...f, [key]: value } : f));
@@ -313,6 +322,26 @@ export default function HomepagePage() {
       toast.success("Hero saved", "The storefront hero picks this up on its next read.");
     } catch (err) {
       setHeroError(err instanceof ApiError ? err.message : "Unexpected error — please try again.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveFlags() {
+    if (!flags) return;
+    setFlagsError(null);
+    setSavingSection("flags");
+    try {
+      await apiPost<SettingsDoc>("/admin/settings", {
+        storefront: {
+          newsletterEnabled: flags.newsletter,
+          giftCollectionEnabled: flags.gift,
+        },
+      });
+      toast.success("Feature flags saved", "The homepage picks these up on its next read.");
+      settingsQuery.reload();
+    } catch (err) {
+      setFlagsError(err instanceof ApiError ? err.message : "Unexpected error — please try again.");
     } finally {
       setSavingSection(null);
     }
@@ -521,8 +550,8 @@ export default function HomepagePage() {
       <section className="mb-6">
         <Card>
           <CardHeader
-            title="Hero (from Settings)"
-            subtitle="Headline, subcopy and CTA over the approved hero photo — edited via Admin → Settings"
+            title="Hero"
+            subtitle="Headline, subcopy and CTA over the approved hero photo — homepage copy lives here"
             actions={
               canSettingsRead && settingsQuery.data ? (
                 <span className="text-xs text-ink/45">Last updated {formatDateTime(settingsQuery.data.updatedAt)}</span>
@@ -534,7 +563,7 @@ export default function HomepagePage() {
               <div className="flex items-start gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-low/60 p-4 text-sm text-on-surface-variant">
                 <IconInfo className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
                 <div>
-                  <p className="font-semibold text-on-surface">Hero copy lives in Admin → Settings → Storefront</p>
+                  <p className="font-semibold text-on-surface">Hero copy needs settings access</p>
                   <p className="mt-1">
                     You don&apos;t have <strong>settings:read</strong>, so the current hero fields are hidden here. Ask an owner
                     for <strong>settings:read</strong> to view them, or <strong>settings:write</strong> to edit — this console
@@ -621,6 +650,77 @@ export default function HomepagePage() {
                 ) : (
                   <p className="text-right text-xs text-ink/50">
                     You have <strong>settings:read</strong> only — hero fields are read-only here.
+                  </p>
+                )}
+              </form>
+            )}
+          </CardBody>
+        </Card>
+      </section>
+
+      {/* ------------------------ Card 1b: Feature flags ------------------------- */}
+      <section className="mb-6">
+        <Card>
+          <CardHeader
+            title="Feature flags"
+            subtitle="Homepage-wide switches — the newsletter capture and the gifting banner"
+            actions={
+              canSettingsRead && settingsQuery.data ? (
+                <span className="text-xs text-ink/45">Last updated {formatDateTime(settingsQuery.data.updatedAt)}</span>
+              ) : undefined
+            }
+          />
+          <CardBody>
+            {!canSettingsRead ? (
+              <div className="flex items-start gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-low/60 p-4 text-sm text-on-surface-variant">
+                <IconInfo className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+                <p>
+                  These flags need <strong>settings:read</strong> to view and <strong>settings:write</strong> to change —
+                  ask an owner for access.
+                </p>
+              </div>
+            ) : !flags || settingsQuery.loading ? (
+              <TableSkeleton rows={2} cols={1} />
+            ) : settingsQuery.error ? (
+              <ErrorState message={settingsQuery.error.message} status={settingsQuery.error.status} onRetry={settingsQuery.reload} />
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void saveFlags();
+                }}
+                className="space-y-4"
+              >
+                {flagsError ? (
+                  <p role="alert" className="rounded-lg border border-error/30 bg-error-container px-3 py-2.5 text-sm font-medium text-on-error-container">
+                    {flagsError}
+                  </p>
+                ) : null}
+                <div className="space-y-3">
+                  <Checkbox
+                    label="Newsletter capture enabled"
+                    description="Shows the newsletter section near the footer of the homepage."
+                    checked={flags.newsletter}
+                    onChange={(e) => setFlags({ ...flags, newsletter: e.target.checked })}
+                    disabled={!canSettingsWrite}
+                  />
+                  <Checkbox
+                    label="Gift collection enabled"
+                    description="Master switch for the gifting banner below — the banner stays hidden while this is off, even when its content is enabled there."
+                    checked={flags.gift}
+                    onChange={(e) => setFlags({ ...flags, gift: e.target.checked })}
+                    disabled={!canSettingsWrite}
+                  />
+                </div>
+                {canSettingsWrite ? (
+                  <div className="flex justify-end">
+                    <Button type="submit" loading={savingSection === "flags"}>
+                      Save flags
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-right text-xs text-ink/50">
+                    You have <strong>settings:read</strong> only — flags are read-only here.
                   </p>
                 )}
               </form>
@@ -1084,9 +1184,9 @@ export default function HomepagePage() {
               <div className="flex items-start gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-low/60 p-3 text-sm">
                 <IconInfo className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
                 <p className="text-on-surface-variant">
-                  The banner also needs <strong>Settings → Storefront → giftCollectionEnabled</strong> to be ON
+                  The banner also needs the <strong>Gift collection flag</strong> (Feature flags card above) to be ON
                   {giftFlag === undefined ? "" : giftFlag ? " — it currently is." : " — it is currently OFF, so the banner stays hidden even when enabled here."}{" "}
-                  That master flag lives in Admin → Settings and is intentionally not duplicated on this page.
+                  It lives on this page so every homepage switch has exactly one home.
                 </p>
               </div>
               {giftingError ? (

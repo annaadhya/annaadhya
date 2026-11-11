@@ -760,7 +760,7 @@ export interface SettingsDoc {
     gstin?: string;
     fssaiLicense?: string;
     socialLinks: { instagram?: string; facebook?: string; whatsapp?: string };
-    announcement: { enabled: boolean; message: string; href?: string };
+    announcement: { enabled: boolean; message: string; href?: string; tagline?: string };
   };
   shipping: {
     mode: "flat_rate" | "free_shipping" | "disabled";

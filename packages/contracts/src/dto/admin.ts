@@ -555,6 +555,7 @@ export const settingsUpdateSchema = z.object({
           enabled: z.boolean().optional(),
           message: z.string().trim().max(160).optional(),
           href: z.string().trim().max(200).optional(),
+          tagline: z.string().trim().max(120).optional(),
         })
         .optional(),
     })

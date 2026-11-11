@@ -8,6 +8,14 @@ import { pushRevalidate } from "../content/revalidate";
 
 const SETTINGS_ID = "global";
 
+/** Seed docs shipped `announcement: { enabled: true, message: "Demo catalogue live —
+ *  prices are illustrative placeholders pending approval." }`. Once the storefront
+ *  started actually rendering this group (2026-11-11), that placeholder would have
+ *  leaked onto the live strip. A doc still carrying the exact demo string has never
+ *  been owner-configured, so it is normalized to disabled+empty at read time; the
+ *  first real owner save overwrites it and this guard becomes a no-op. */
+const LEGACY_DEMO_ANNOUNCEMENT = "Demo catalogue live — prices are illustrative placeholders pending approval.";
+
 @Injectable()
 export class SettingsService {
   constructor(@Inject(DATA_CLIENT) private readonly data: DataClient) {}
@@ -24,7 +32,11 @@ export class SettingsService {
     // (e.g. shipping added later) previously surfaced as undefined mode/amounts —
     // 500s on the public settings endpoint and cryptic admin save errors. Defaults
     // fill any gap; stored values always win.
-    return deepMerge(defaultSettings(), doc) as SettingsDoc;
+    const merged = deepMerge(defaultSettings(), doc) as SettingsDoc;
+    if (merged.store?.announcement?.message === LEGACY_DEMO_ANNOUNCEMENT) {
+      merged.store.announcement = { enabled: false, message: "" };
+    }
+    return merged;
   }
 
   async update(patch: DeepPartial<SettingsDoc>): Promise<SettingsDoc> {

@@ -871,7 +871,11 @@ export interface SettingsDoc {
     gstin?: string; // intentionally blank until the business supplies it
     fssaiLicense?: string;
     socialLinks: { instagram?: string; facebook?: string; whatsapp?: string };
-    announcement: { enabled: boolean; message: string; href?: string };
+    /** Top maroon strip: when enabled+message are set the LEFT segment renders the
+     *  custom message (linked via href); otherwise it shows the automatic
+     *  free-shipping claim derived from shipping settings. tagline fills the
+     *  CENTER segment; blank keeps the approved design tagline. */
+    announcement: { enabled: boolean; message: string; href?: string; tagline?: string };
   };
   shipping: {
     mode: "flat_rate" | "free_shipping" | "disabled";
@@ -918,7 +922,11 @@ export interface PublicStoreSettings {
     supportPhone: string;
     addressLines: string[];
     socialLinks: { instagram?: string; facebook?: string; whatsapp?: string };
-    announcement: { enabled: boolean; message: string; href?: string };
+    /** Top maroon strip: when enabled+message are set the LEFT segment renders the
+     *  custom message (linked via href); otherwise it shows the automatic
+     *  free-shipping claim derived from shipping settings. tagline fills the
+     *  CENTER segment; blank keeps the approved design tagline. */
+    announcement: { enabled: boolean; message: string; href?: string; tagline?: string };
   };
   storefront: {
     newsletterEnabled: boolean;

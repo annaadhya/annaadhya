@@ -363,10 +363,13 @@ export function defaultSettings(): SettingsDoc {
       supportPhone: "", // TODO(owner): add before launch
       addressLines: [],
       socialLinks: {},
+      // Disabled by default: the strip shows the automatic free-shipping claim
+      // until the owner writes a real announcement. (The old demo placeholder
+      // here used to leak onto the strip the moment the storefront started
+      // reading this group — 2026-11-11.)
       announcement: {
-        enabled: true,
-        message: "Demo catalogue live — prices are illustrative placeholders pending approval.",
-        href: "/shop",
+        enabled: false,
+        message: "",
       },
     },
     shipping: {

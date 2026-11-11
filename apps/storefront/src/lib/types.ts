@@ -143,7 +143,7 @@ export interface PublicStoreSettings {
     supportPhone: string;
     addressLines: string[];
     socialLinks: { instagram?: string; facebook?: string; whatsapp?: string };
-    announcement: { enabled: boolean; message: string; href?: string };
+    announcement: { enabled: boolean; message: string; href?: string; tagline?: string };
   };
   storefront: {
     newsletterEnabled: boolean;
