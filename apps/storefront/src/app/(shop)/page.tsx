@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getBestsellers, getCategories, getFeatured, getHomepageConfig, getProduct, getPublicSettings } from "@/lib/api";
+import { apiGetWithStatus, getBestsellers, getFeatured, getHomepageConfig, getProduct, getPublicSettings } from "@/lib/api";
+import type { CategoryDoc } from "@/lib/types";
 import { safeCategoryHref } from "@/lib/navigation-guard";
 import { formatINR, minVariantPricePaise } from "@/lib/format";
 import { ProductGrid, ProductCardSkeleton } from "@/components/product-card";
@@ -79,13 +80,16 @@ const TRUST = [
 ] as const;
 
 export default async function HomePage() {
-  const [categories, featured, bestsellers, settings, cms] = await Promise.all([
-    getCategories(),
+  const [categoriesRes, featured, bestsellers, settings, cms] = await Promise.all([
+    // Status-aware canary: categories answer even when EMPTY — only a network /
+    // 5xx failure yields ok:false. Everything else degrades to [] as before.
+    apiGetWithStatus<CategoryDoc[]>("/categories", 120, ["categories", "cms"]),
     getFeatured(),
     getBestsellers(),
     getPublicSettings(),
     getHomepageConfig(),
   ]);
+  const categories = categoriesRes.data ?? [];
 
   // Owner-controlled hero copy + feature flags (Admin → Settings). Blank strings
   // mean "use the approved design default"; null settings (API offline during
@@ -111,7 +115,10 @@ export default async function HomePage() {
   const giftCollectionEnabled = sf?.giftCollectionEnabled ?? true;
   const products = featured.length > 0 ? featured : bestsellers;
   const showcase = products.slice(0, 4);
-  const apiOffline = categories.length === 0 && featured.length === 0 && bestsellers.length === 0;
+  // Honest empty-vs-offline split: apiOffline = the API genuinely failed;
+  // catalogueEmpty = the API answered but there is nothing approved to sell.
+  const apiOffline = !categoriesRes.ok;
+  const catalogueEmpty = categoriesRes.ok && categories.length === 0 && featured.length === 0 && bestsellers.length === 0;
 
   const bySlug = new Map(categories.map((c) => [c.slug, c]));
 
@@ -387,6 +394,14 @@ export default async function HomePage() {
               <h3 className="font-semibold text-on-surface">Store is warming up</h3>
               <p className="mt-space-xs text-body-sm text-on-surface-variant">
                 The catalogue isn&apos;t reachable right now, so shelves look empty. Please refresh in a moment.
+              </p>
+            </div>
+          ) : catalogueEmpty ? (
+            <div className="card-soft p-space-lg">
+              <h3 className="font-semibold text-on-surface">Our shelves are being stocked</h3>
+              <p className="mt-space-xs text-body-sm text-on-surface-variant">
+                The catalogue is empty for now — products appear here the moment they are approved in the store
+                admin. Please check back shortly.
               </p>
             </div>
           ) : (

@@ -32,19 +32,30 @@ export interface ApiEnvelope<T> {
   error?: { code: string; message: string; details?: unknown };
 }
 
-export async function apiGet<T>(path: string, revalidate = 60, tags?: string[]): Promise<T | null> {
+export async function apiGetWithStatus<T>(
+  path: string,
+  revalidate = 60,
+  tags?: string[],
+): Promise<{ ok: boolean; data: T | null }> {
   try {
     const res = await fetch(`${API_URL}${path}`, {
       next: { revalidate, ...(tags && tags.length > 0 ? { tags } : {}) },
       headers: { "content-type": "application/json" },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { ok: false, data: null };
     const body = (await res.json()) as ApiEnvelope<T>;
-    return body.ok ? body.data ?? null : null;
+    // ok:true even when data is null/[] — the API answered; emptiness is a
+    // catalogue state, not a network failure. Callers that must distinguish
+    // "offline" from "empty" use this; apiGet below collapses both to null.
+    return body.ok ? { ok: true, data: body.data ?? null } : { ok: false, data: null };
   } catch {
     // API offline during build/preview — pages render their empty states.
-    return null;
+    return { ok: false, data: null };
   }
+}
+
+export async function apiGet<T>(path: string, revalidate = 60, tags?: string[]): Promise<T | null> {
+  return (await apiGetWithStatus<T>(path, revalidate, tags)).data;
 }
 
 export async function apiPost<T>(path: string, body: unknown, token?: string): Promise<T> {
