@@ -20,7 +20,17 @@ import {
   IconTruck,
 } from "@/components/icons";
 
-export const revalidate = 60;
+/**
+ * Rendered per request (force-dynamic), NOT ISR: on the Hostinger runtime the
+ * ISR background regeneration never fired, so the homepage froze on its
+ * build-time snapshot — baked while the previous API process was still running
+ * (2026-11-11: deploy shipped the bestsellers fallback but the shelf stayed
+ * empty for 10+ min; CMS edits showed the same freeze class). Dynamic rendering
+ * fetches the on-box API over loopback (single-digit ms) and Next marks the
+ * HTML no-store, which the edge respects — admin edits and catalogue changes
+ * are visible on the very next page view with no cache surgery.
+ */
+export const dynamic = "force-dynamic";
 
 /** Collection cards — links/slugs/names come from the live catalogue; approved design
  *  supplies the imagery, badges and editorial copy. A category missing from the API
