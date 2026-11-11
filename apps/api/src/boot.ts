@@ -265,7 +265,19 @@ async function boot(): Promise<void> {
       ): void;
     };
     expressApp.get("/", (_req, res) => {
-      res.status(200).json({ ok: true, service: "annaadhya-api", hint: "/api/v1/health" });
+      res.status(200).json({
+        ok: true,
+        service: "annaadhya-api",
+        hint: "/api/v1/health",
+        // Ops diagnostics (non-sensitive): the injected listen port is needed for
+        // same-box loopback calls between our Node apps; the build tag identifies
+        // which dist is live. Everything here is already observable externally.
+        diag: {
+          port: process.env.PORT ?? null,
+          nodeEnv: process.env.NODE_ENV ?? null,
+          build: DEPLOY_BUILD,
+        },
+      });
     });
   }
 
