@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "description": "Annaadhya Products \u2014 Indian e-commerce platform (storefront, admin, API).",
+  "main": "main.js",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20.9.0"
   },
   "scripts": {
+    "start": "node main.js",
     "dev": "pnpm --filter @annaadhya/api dev & pnpm --filter @annaadhya/storefront dev",
     "dev:api": "pnpm --filter @annaadhya/api dev",
     "dev:storefront": "pnpm --filter @annaadhya/storefront dev",
