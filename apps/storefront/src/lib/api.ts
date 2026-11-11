@@ -37,19 +37,34 @@ export async function apiGetWithStatus<T>(
   revalidate = 60,
   tags?: string[],
 ): Promise<{ ok: boolean; data: T | null }> {
+  // JSON log lines (timestamp/level/message) land in the platform's runtime-log
+  // parser — ops can see API reachability from this app without shell access.
+  const logFailure = (detail: string) => {
+    console.log(
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: "WARN",
+        message: `apiGet failed ${path} ${detail}`,
+      }),
+    );
+  };
   try {
     const res = await fetch(`${API_URL}${path}`, {
       next: { revalidate, ...(tags && tags.length > 0 ? { tags } : {}) },
       headers: { "content-type": "application/json" },
     });
-    if (!res.ok) return { ok: false, data: null };
+    if (!res.ok) {
+      logFailure(`status=${res.status}`);
+      return { ok: false, data: null };
+    }
     const body = (await res.json()) as ApiEnvelope<T>;
     // ok:true even when data is null/[] — the API answered; emptiness is a
     // catalogue state, not a network failure. Callers that must distinguish
     // "offline" from "empty" use this; apiGet below collapses both to null.
     return body.ok ? { ok: true, data: body.data ?? null } : { ok: false, data: null };
-  } catch {
+  } catch (e) {
     // API offline during build/preview — pages render their empty states.
+    logFailure(`error=${`${e}`.slice(0, 140)}`);
     return { ok: false, data: null };
   }
 }
