@@ -233,6 +233,16 @@ export class CatalogueService {
     return rows.slice(0, limit);
   }
 
+  /**
+   * Bestsellers shelf: admin-ranked products (bestsellerRank) come first in
+   * rank order; whenever fewer than `limit` products carry a rank, the tail is
+   * padded with random published products so the storefront never renders an
+   * empty favourites shelf while the catalogue has anything sellable (owner
+   * request 2026-11-11: "if there are not any best selling, still show any
+   * random 4 products"). With zero ranked products this returns a random
+   * sample of the catalogue, changing on every response — the storefront's
+   * ISR window naturally rotates the picks.
+   */
   async bestsellers(limit = 8): Promise<ProductWithVariants[]> {
     const [rows, variantsMap] = await Promise.all([
       this.data.list<ProductDoc>(COLLECTIONS.products, {
@@ -240,11 +250,21 @@ export class CatalogueService {
       }),
       this.variantsByProduct(),
     ]);
-    return rows
+    const sellable = rows
       .map((p) => ({ ...p, variants: variantsMap.get(p.id) ?? [] }))
-      .filter((p) => p.variants.length > 0 && p.bestsellerRank !== undefined)
+      .filter((p) => p.variants.length > 0);
+    const ranked = sellable
+      .filter((p) => p.bestsellerRank !== undefined)
       .sort((a, b) => a.bestsellerRank! - b.bestsellerRank!)
       .slice(0, limit);
+    if (ranked.length >= limit) return ranked;
+    const picked = new Set(ranked.map((p) => p.id));
+    const pool = sellable.filter((p) => !picked.has(p.id));
+    for (let i = pool.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return [...ranked, ...pool.slice(0, limit - ranked.length)];
   }
 
   async featured(limit = 8): Promise<ProductWithVariants[]> {

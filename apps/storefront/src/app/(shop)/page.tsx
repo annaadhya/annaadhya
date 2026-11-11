@@ -4,7 +4,7 @@ import { apiGetWithStatus, getBestsellers, getFeatured, getHomepageConfig, getPr
 import type { CategoryDoc } from "@/lib/types";
 import { safeCategoryHref } from "@/lib/navigation-guard";
 import { formatINR, minVariantPricePaise } from "@/lib/format";
-import { ProductGrid, ProductCardSkeleton } from "@/components/product-card";
+import { ProductGrid } from "@/components/product-card";
 import { NewsletterForm } from "@/components/newsletter-form";
 import {
   IconArrowRight,
@@ -115,10 +115,11 @@ export default async function HomePage() {
   const giftCollectionEnabled = sf?.giftCollectionEnabled ?? true;
   const products = featured.length > 0 ? featured : bestsellers;
   const showcase = products.slice(0, 4);
-  // Honest empty-vs-offline split: apiOffline = the API genuinely failed;
-  // catalogueEmpty = the API answered but there is nothing approved to sell.
+  // Honest empty-vs-offline split: apiOffline = the API genuinely failed. Any
+  // other empty shelf means the catalogue has nothing sellable yet — the
+  // bestsellers endpoint pads with random published products, so an empty
+  // shelf now only happens on a truly empty store.
   const apiOffline = !categoriesRes.ok;
-  const catalogueEmpty = categoriesRes.ok && categories.length === 0 && featured.length === 0 && bestsellers.length === 0;
 
   const bySlug = new Map(categories.map((c) => [c.slug, c]));
 
@@ -427,19 +428,13 @@ export default async function HomePage() {
                 The catalogue isn&apos;t reachable right now, so shelves look empty. Please refresh in a moment.
               </p>
             </div>
-          ) : catalogueEmpty ? (
+          ) : (
             <div className="card-soft p-space-lg">
               <h3 className="font-semibold text-on-surface">Our shelves are being stocked</h3>
               <p className="mt-space-xs text-body-sm text-on-surface-variant">
                 The catalogue is empty for now — products appear here the moment they are approved in the store
                 admin. Please check back shortly.
               </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
             </div>
           )}
         </div>
