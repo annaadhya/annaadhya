@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npx tsx watch src/boot.ts",
     "build": "tsc -p tsconfig.build.json && node scripts/emit-dist-main.mjs && node scripts/assemble-dist.mjs",
+    "dist:probe": "node scripts/make-probe-dist.mjs",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --max-warnings 0",

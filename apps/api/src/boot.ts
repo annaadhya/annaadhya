@@ -22,7 +22,7 @@ import type { NestFactory } from "@nestjs/core";
 const bootLog: string[] = [];
 // Bumped with each diagnostic iteration; appears first in every boot report so a
 // live deployment's exact build is identifiable from outside the dashboard.
-const DEPLOY_BUILD = "v13-instant-listen";
+const DEPLOY_BUILD = "v14-publish-hygiene";
 bootLog.push(`build: ${DEPLOY_BUILD}`);
 
 /**

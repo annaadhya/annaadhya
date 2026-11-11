@@ -18,6 +18,11 @@
  *   apps/api/dist/src/**           (compiled bootstrap)
  *   apps/api/dist/node_modules/**  (prod deps, hoisted real files)
  *   apps/api/dist/package.json     (runtime manifest, entry = src/boot.js)
+ *   apps/api/dist/package-lock.json (npm ci/install no-op insurance)
+ *
+ * After assembly it reclaims build-side disk (per-build pnpm store cache)
+ * BEFORE the platform's publish/copy phase starts - on a quota'd shared
+ * account the publish copy is the suspected truncation point.
  *
  * Skipped on Vercel (its pipeline bundles its own entrypoint via
  * .generated-main.js) or when ASSEMBLE_DIST=0. Runs after tsc +
@@ -120,7 +125,11 @@ const PRUNE_DIRS = new Set([
   ".github", "test", "tests", "__tests__", "example", "examples",
   "docs", "doc", "coverage", ".nyc_output", ".vscode", ".idea",
 ]);
-const PRUNE_FILES = /\.md$|\.map$|\.d\.ts$|\.tsbuildinfo$|\.patch$|\.tgz$|^LICENSE|^AUTHORS|^\.eslintrc|^\.prettierrc|^\.babelrc|^\.jshintrc|\.npmignore$/i;
+// v14: also strip TypeScript sources shipped by packages (.ts/.tsx/.cts/.mts -
+// runtime Node never reads them; verified no package.json main points to .ts),
+// CI/config noise (.travis.yml/.gitlab-ci.yml/.circleci/.nycrc/.editorconfig/.flow
+// - verified all yml/yaml in the tree are CI configs) and repo meta files.
+const PRUNE_FILES = /\.md$|\.map$|\.d\.ts$|\.tsbuildinfo$|\.patch$|\.tgz$|^LICENSE|^AUTHORS|^\.eslintrc|^\.prettierrc|^\.babelrc|^\.jshintrc|\.npmignore$|\.tsx?$|\.cts$|\.mts$|\.nycrc$|\.editorconfig$|\.ya?ml$|\.flow$|^CONTRIBUTING|^CHANGELOG/i;
 let pruned = 0;
 (function walk(d) {
   let entries;
@@ -174,13 +183,73 @@ writeFileSync(
       },
       annaadhya: {
         entryCandidates: ["src/boot.js", "main.js", "boot.js", "src/main.js"],
-        build: "v13-instant-listen",
+        build: "v14-publish-hygiene",
       },
     },
     null,
     2,
   ) + "\n",
 );
+
+// npm-compat lockfile: some managed pipelines run `npm ci`/`npm install` inside
+// the published output dir before starting the app; without a lockfile npm ci
+// fails fast ("EUSAGE") and surfaces only as the opaque deploy failure. With a
+// zero-dependency manifest an empty v3 lockfile satisfies npm ci AND npm
+// install as an instant no-op. Harmless for every other startup path.
+writeFileSync(
+  join(dist, "package-lock.json"),
+  JSON.stringify(
+    {
+      name: "annaadhya-api-runtime",
+      version: "0.1.0",
+      lockfileVersion: 3,
+      requires: true,
+      packages: { "": { name: "annaadhya-api-runtime", version: "0.1.0", license: "UNLICENSED" } },
+    },
+    null,
+    2,
+  ) + "\n",
+);
+
+// ---- Pre-publish disk reclaim (Hostinger build environment) ----
+// The publish/copy phase starts with the build workspace still fully
+// populated: root node_modules (913 packages) PLUS the per-build
+// content-addressable pnpm store under .../hbuilds/cache/<build-id>/.
+// Every dependency is already materialized as real files inside
+// dist/node_modules, so the store is dead weight - and on a quota'd shared
+// account a publish copy needing another ~120M / ~11k files can hit EDQUOT
+// after accumulated failed builds, showing up only as "Deployment failed
+// unexpectedly". Delete exactly this build's cache dir (double-guarded:
+// path must contain hbuilds/cache/<id>/pnpm-store/..., deleting only up to
+// <build-id>). Never fatal.
+function duBytes(p) {
+  const r = spawnSync("du", ["-sk", p], { encoding: "utf8" });
+  return r.status === 0 ? Number(r.stdout.trim().split(/\s+/)[0]) * 1024 : 0;
+}
+try {
+  const storeRes = spawnSync("pnpm", ["store", "path"], { cwd: repoRoot, encoding: "utf8" });
+  const storePath = (storeRes.stdout || "").trim();
+  const segments = storePath ? storePath.split(/[\\/]+/).filter(Boolean) : [];
+  const cacheIdx = segments.lastIndexOf("cache");
+  if (
+    storeRes.status === 0 &&
+    cacheIdx >= 1 &&
+    segments[cacheIdx - 1] === "hbuilds" &&
+    segments.length >= cacheIdx + 3
+  ) {
+    const buildCacheDir = segments.slice(0, cacheIdx + 2).join("/");
+    const freed = duBytes(buildCacheDir);
+    rmSync(buildCacheDir, { recursive: true, force: true });
+    console.log(
+      `[assemble-dist] pre-publish reclaim: removed build pnpm store ${buildCacheDir}` +
+        (freed ? ` (${(freed / 1024 / 1024).toFixed(0)}M freed)` : ""),
+    );
+  } else if (storePath) {
+    console.log(`[assemble-dist] pnpm store ${storePath} kept (not a platform build cache)`);
+  }
+} catch (err) {
+  console.log(`[assemble-dist] pre-publish reclaim skipped: ${err instanceof Error ? err.message : err}`);
+}
 
 try {
   const du = spawnSync("du", ["-sh", dist], { encoding: "utf8" });
