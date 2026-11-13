@@ -102,10 +102,12 @@ export function Header({ navItems }: { navItems?: { href: string; label: string 
 
   return (
     <header className="sticky top-0 z-40 w-full bg-surface/90 shadow-[0_2px_12px_rgba(39,24,16,0.06)] backdrop-blur-xl">
-      {/* Phones give the brand a slightly taller bar (h-[92px]) so the honey-drop mark
-          reads larger; sm+ keeps the approved 80px bar and mark untouched. The icons
-          stay centred and nothing overlaps — the row is the only thing that grows. */}
-      <div className="mx-auto flex h-[92px] max-w-7xl items-center justify-between px-margin-mobile sm:h-20 lg:px-margin">
+      {/* Phones get a slim 64px bar (h-16) — at 92px the honey-drop mark dominated the
+          narrow viewport and pushed everything else down; 64px is the standard mobile
+          navbar height and keeps the brand clearly present without shouting. sm+ keeps
+          the approved 80px bar and mark untouched. The icons stay centred and nothing
+          overlaps — only the row height differs. */}
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-margin-mobile sm:h-20 lg:px-margin">
         <div className="flex items-center gap-space-md">
           <button
             className="-ml-1.5 rounded-sm p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface xl:hidden"
@@ -115,9 +117,10 @@ export function Header({ navItems }: { navItems?: { href: string; label: string 
           >
             {menuOpen ? <IconX size={22} /> : <IconMenu size={22} />}
           </button>
-          {/* Animated mark: 92px on phones, the approved 80px from sm up — the wordmark
-              size is untouched (wordmarkHeight = the 40px default's derived 29px). */}
-          <Logo height={80} mobileHeight={92} wordmarkHeight={29} compactOnMobile />
+          {/* Animated mark: 64px on phones, the approved 80px from sm up — the wordmark
+              is hidden on phones (compactOnMobile) and its size is untouched elsewhere
+              (wordmarkHeight = the 40px default's derived 29px). */}
+          <Logo height={80} mobileHeight={64} wordmarkHeight={29} compactOnMobile />
         </div>
 
         <nav className="hidden items-center gap-space-lg xl:flex" aria-label="Primary">
