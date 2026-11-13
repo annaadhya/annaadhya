@@ -13,6 +13,7 @@ import {
   type ProductUpsertDto,
   type CategoryUpsertDto,
   type ProductVariantDoc,
+  type StockReservationDoc,
 } from "@annaadhya/contracts";
 import { conflict, notFound, validationFailed, type DataClient } from "@annaadhya/data-core";
 import { DATA_CLIENT } from "../../data/data.module";
@@ -493,6 +494,50 @@ export class CatalogueService {
     for (const v of variants) {
       await this.data.update(COLLECTIONS.productVariants, v.id, { status: "archived" });
     }
+  }
+
+  /**
+   * Hard delete — erases the product document and ALL of its variant documents from the
+   * catalogue entirely (archive keeps them with status="archived"; this removes the docs).
+   * Orders are deliberately untouched: every order line is a self-contained snapshot
+   * (sku/name/price frozen at purchase time), so past orders render exactly as before,
+   * and historical inventory movements stay as the audit ledger. Product images on the
+   * Hostinger disk are left in place on purpose — the same URL may be referenced by other
+   * docs, and orphaned files are harmless.
+   *
+   * Refuses with a conflict while any ACTIVE stock reservation exists for the product's
+   * variants: checkout commits by transactionally updating the variant docs, so deleting
+   * a variant mid-checkout would break that order placement. Reservations expire on
+   * their own (checkout TTL), so the admin simply retries shortly. Single-field where
+   * (status) + client-side variant/expiry filtering keeps this composite-index-free.
+   */
+  async deleteProduct(productId: string): Promise<{ deleted: true; variantsDeleted: number }> {
+    const product = await this.data.get<ProductDoc>(COLLECTIONS.products, productId);
+    if (!product) throw notFound("Product not found");
+
+    const variants = await this.data.list<ProductVariantDoc>(COLLECTIONS.productVariants, {
+      where: [{ field: "productId", op: "==", value: productId }],
+    });
+    if (variants.length > 0) {
+      const variantIds = new Set(variants.map((v) => v.id));
+      const activeReservations = await this.data.list<StockReservationDoc>(COLLECTIONS.stockReservations, {
+        where: [{ field: "status", op: "==", value: "active" }],
+      });
+      const live = activeReservations.filter(
+        (r) => variantIds.has(r.variantId) && r.expiresAt > Date.now(),
+      );
+      if (live.length > 0) {
+        throw conflict(
+          `${live.length} active checkout reservation(s) exist for this product — wait a few minutes for them to expire, then delete again.`,
+        );
+      }
+    }
+
+    for (const v of variants) {
+      await this.data.delete(COLLECTIONS.productVariants, v.id);
+    }
+    await this.data.delete(COLLECTIONS.products, productId);
+    return { deleted: true, variantsDeleted: variants.length };
   }
 }
 

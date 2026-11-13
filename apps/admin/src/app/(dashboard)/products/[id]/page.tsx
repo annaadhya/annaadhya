@@ -15,6 +15,7 @@ import type { ProductWithVariants } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import {
@@ -44,6 +45,10 @@ export default function EditProductPage() {
   const [hydratedId, setHydratedId] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data, loading, error, reload } = useApiQuery<ProductWithVariants>(
     () => apiGet<ProductWithVariants>(`/admin/catalogue/products/${productId}`),
@@ -82,6 +87,41 @@ export default function EditProductPage() {
     } catch (err) {
       toast.error("Could not duplicate product", err instanceof ApiError ? err.message : "Unexpected error");
       setDuplicating(false);
+    }
+  }
+
+  function openDelete() {
+    setDeleteOpen(true);
+    setDeleteConfirm("");
+    setDeleteError(null);
+  }
+
+  /** Hard delete — hits the purge endpoint; the product + its variants are erased for
+   *  good. A 409 (active checkout reservation) is shown inline so the admin can retry
+   *  after the reservation expires; every other failure surfaces as a toast. */
+  async function purge() {
+    if (!data) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await apiDelete<{ deleted: true; variantsDeleted: number }>(
+        `/admin/catalogue/products/${data.id}/purge`,
+      );
+      toast.success(
+        "Product permanently deleted",
+        `${data.sku} and ${res.variantsDeleted} variant${res.variantsDeleted === 1 ? "" : "s"} erased — past orders keep their snapshots.`,
+      );
+      setDeleteOpen(false);
+      router.push("/products");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setDeleteError(err.message);
+      } else {
+        toast.error("Could not delete product", err instanceof ApiError ? err.message : "Unexpected error");
+        setDeleteOpen(false);
+      }
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -168,6 +208,14 @@ export default function EditProductPage() {
               </Button>
             ) : null}
             {canWrite ? (
+              <Button variant="danger" onClick={openDelete}>
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                </svg>
+                Delete
+              </Button>
+            ) : null}
+            {canWrite ? (
               <Button type="submit" form="product-form">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="m5 12 5 5L20 7" />
@@ -199,6 +247,65 @@ export default function EditProductPage() {
           You have <strong>products:read</strong> only — the edit form is hidden. Ask an owner for <strong>products:write</strong> to make changes.
         </Card>
       )}
+
+      {/* Permanent delete confirmation — type the SKU to unlock. Archive is reversible;
+          this is not, so the guard is stronger than a plain confirm(). */}
+      <Dialog
+        open={deleteOpen}
+        onClose={deleting ? () => undefined : () => setDeleteOpen(false)}
+        title="Delete this product permanently?"
+        description="Deletion is irreversible — archive keeps the record, this erases it."
+      >
+        {data ? (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-outline-variant/40 bg-surface-container-low/60 px-3 py-2.5 text-sm">
+              <p className="font-semibold text-on-surface">{data.name}</p>
+              <p className="mt-0.5 font-mono text-xs text-on-surface-variant">{data.sku}</p>
+            </div>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-on-surface-variant">
+              <li>
+                The product and its <strong>{data.variants.length}</strong> variant{data.variants.length === 1 ? "" : "s"} are erased from the catalogue entirely.
+              </li>
+              <li>Past orders are untouched — they keep the name, SKU and price frozen at purchase time.</li>
+              <li>Product images stay on disk; nothing on the storefront can serve them once the product is gone.</li>
+              <li>Blocked while a customer checkout holds this product&#39;s stock — retry in a few minutes if the server says so.</li>
+            </ul>
+            {deleteError ? (
+              <div className="rounded-lg border border-tertiary-fixed-dim/60 bg-tertiary-fixed/30 px-3 py-2.5 text-sm font-semibold text-on-tertiary-fixed">
+                {deleteError}
+              </div>
+            ) : null}
+            <div>
+              <label htmlFor="delete-confirm-sku" className="mb-1.5 block text-xs font-semibold text-on-surface-variant">
+                Type <span className="font-mono text-on-surface">{data.sku}</span> to confirm
+              </label>
+              <input
+                id="delete-confirm-sku"
+                type="text"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder={data.sku}
+                autoComplete="off"
+                disabled={deleting}
+                className="w-full rounded-lg bg-surface-container-low px-3 py-2.5 font-mono text-[13px] text-on-surface shadow-inner placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-error"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" disabled={deleting} onClick={() => setDeleteOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                loading={deleting}
+                disabled={deleteConfirm.trim().toUpperCase() !== data.sku.trim().toUpperCase()}
+                onClick={() => void purge()}
+              >
+                Delete forever
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Dialog>
     </div>
   );
 }

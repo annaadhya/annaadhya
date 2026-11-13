@@ -160,6 +160,28 @@ export class AdminCatalogueController {
     return { archived: true };
   }
 
+  /** Hard delete — erases the product + its variants entirely (archive's destructive
+   *  sibling). Declared as a distinct subresource so the existing soft-delete route
+   *  above is untouched. The service refuses with 409 while checkout holds live
+   *  stock reservations for the product's variants. */
+  @Delete("products/:id/purge")
+  @Protected("products:write")
+  @RequirePermissions("products:write")
+  async purge(@Param("id") id: string, @CurrentUser() actor: AuthPrincipal) {
+    const existing = await this.catalogue.getProductById(id);
+    const result = await this.catalogue.deleteProduct(id);
+    await this.audit.record({
+      actor,
+      action: "product.delete",
+      targetType: "product",
+      targetId: id,
+      summary: `Permanently deleted product ${existing?.sku ?? id} (${existing?.name ?? "unknown"}) and ${result.variantsDeleted} variant(s)`,
+      metadata: { variantsDeleted: result.variantsDeleted, sku: existing?.sku ?? null, name: existing?.name ?? null },
+    });
+    await pushRevalidate({ tags: ["cms", "categories", "homepage"], paths: ["/", "/shop"] });
+    return result;
+  }
+
   @Post("categories")
   @Protected("categories:write")
   @RequirePermissions("categories:write")
