@@ -117,16 +117,12 @@ export function Header({ navItems }: { navItems?: { href: string; label: string 
           >
             {menuOpen ? <IconX size={22} /> : <IconMenu size={22} />}
           </button>
-<<<<<<< HEAD
-          {/* Animated mark: 64px on phones, the approved 80px from sm up — the wordmark
-              is hidden on phones (compactOnMobile) and its size is untouched elsewhere
+          {/* Animated mark: 64px on phones, the approved 80px from sm up — it fills the
+              64px phone bar exactly the way the 80px mark fills the 80px desktop bar
+              (a larger mark would overflow the slim bar). The wordmark is hidden on
+              phones (compactOnMobile) and its size is untouched elsewhere
               (wordmarkHeight = the 40px default's derived 29px). */}
           <Logo height={80} mobileHeight={64} wordmarkHeight={29} compactOnMobile />
-=======
-          {/* Animated mark: 68px on phones, the approved 80px from sm up — the wordmark
-              size is untouched (wordmarkHeight = the 40px default's derived 29px). */}
-          <Logo height={80} mobileHeight={68} wordmarkHeight={29} compactOnMobile />
->>>>>>> f4f094b (made mobile logo small)
         </div>
 
         <nav className="hidden items-center gap-space-lg xl:flex" aria-label="Primary">
